@@ -26,6 +26,12 @@ public:
     juce::String releaseUrl() const;
     juce::String errorText() const;
     juce::File downloadedFile() const;
+    juce::String assetName() const;      // zip for this operating system (empty = none)
+
+    // Keyword in the release zip name for this operating system: "macOS" or "win64".
+    static juce::String platformKeyword();
+    // Select the release zip for this operating system from the GitHub "assets" array.
+    static int selectAsset (const juce::StringArray& names);
 
     static juce::String currentVersion();
     // Returns true when version a is newer than version b ("1.2.0" > "1.1.9").
@@ -40,7 +46,7 @@ private:
     mutable juce::CriticalSection lock;
     Status state = Status::Idle;
     bool wantDownload = false;
-    juce::String latest, htmlUrl, assetUrl, assetName, error;
+    juce::String latest, htmlUrl, assetUrl, asset, error;
     juce::File downloaded;
 };
 } // namespace pg

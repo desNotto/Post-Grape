@@ -1,6 +1,16 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(PostGrape VERSION 1.1.1 LANGUAGES C CXX)
+# macOS: one universal binary (Apple Silicon + Intel), macOS 10.13 or later.
+if(APPLE)
+    if(NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+    endif()
+    if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "" FORCE)
+    endif()
+endif()
+
+project(PostGrape VERSION 1.1.2 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,12 +29,21 @@ else()
     FetchContent_MakeAvailable(JUCE)
 endif()
 
+# Windows: VST3. macOS: VST3 and AU (Logic Pro, GarageBand need AU).
+if(APPLE)
+    set(PG_FORMATS VST3 AU Standalone)
+else()
+    set(PG_FORMATS VST3 Standalone)
+endif()
+
 juce_add_plugin(PostGrape
     COMPANY_NAME "desNotto"
     COMPANY_WEBSITE "https://github.com/desNotto/Post-Grape"
     PLUGIN_MANUFACTURER_CODE DsNt
     PLUGIN_CODE PGrp
-    FORMATS VST3 Standalone
+    FORMATS ${PG_FORMATS}
+    AU_MAIN_TYPE kAudioUnitType_Effect
+    BUNDLE_ID com.desnotto.postgrape
     PRODUCT_NAME "Post-Grape"
     DESCRIPTION "Guitar bus post-FX: EQ, low-band compressor, wider, mono-maker, true stereo pan, lofi, true-peak limiter, auto-gain"
     IS_SYNTH FALSE
@@ -81,13 +100,27 @@ target_link_libraries(PostGrape
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
 
-# Copy the plugin to <project>/bin/Post-Grape/Post-Grape.vst3 as ONE file
-# (single-file VST3: the plugin binary without the bundle folders).
-add_custom_command(TARGET PostGrape_VST3 POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape.vst3"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape"
-    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:PostGrape_VST3>" "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
-    COMMENT "Copy Post-Grape.vst3 (single file) to bin/Post-Grape/")
+# Copy the plugin to <project>/bin/Post-Grape/.
+# Windows: Post-Grape.vst3 as ONE file (single-file VST3, no bundle folders).
+# macOS: Post-Grape.vst3 and Post-Grape.component (macOS plugins are bundles; Finder shows each as one item).
+if(APPLE)
+    add_custom_command(TARGET PostGrape_VST3 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape"
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:PostGrape_VST3>" "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
+        COMMENT "Copy Post-Grape.vst3 to bin/Post-Grape/")
+    add_custom_command(TARGET PostGrape_AU POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape"
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.component"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:PostGrape_AU>" "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.component"
+        COMMENT "Copy Post-Grape.component to bin/Post-Grape/")
+else()
+    add_custom_command(TARGET PostGrape_VST3 POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape.vst3"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape"
+        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:PostGrape_VST3>" "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
+        COMMENT "Copy Post-Grape.vst3 (single file) to bin/Post-Grape/")
+endif()
 
 # DSP tests (no JUCE).
 add_executable(PostGrapeTests tests/dsp_tests.cpp)
@@ -100,7 +133,7 @@ target_sources(PostGrapeUpdateTest PRIVATE tests/update_test.cpp src/UpdateCheck
 target_compile_definitions(PostGrapeUpdateTest PRIVATE JucePlugin_VersionString="1.0.0" JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
 target_link_libraries(PostGrapeUpdateTest PRIVATE juce::juce_events PUBLIC juce::juce_recommended_config_flags)
 
-# Manual test host: loads bin/Post-Grape/Post-Grape.vst3 (single file) and processes audio.
+# Manual test host: loads bin/Post-Grape/Post-Grape.vst3 and processes audio.
 juce_add_console_app(PostGrapeHostTest PRODUCT_NAME "PostGrapeHostTest")
 set_target_properties(PostGrapeHostTest PROPERTIES EXCLUDE_FROM_ALL TRUE)
 target_sources(PostGrapeHostTest PRIVATE tests/host_test.cpp)

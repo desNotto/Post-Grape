@@ -52,6 +52,30 @@ juce::String UpdateChecker::latestVersion() const { const juce::ScopedLock sl (l
 juce::String UpdateChecker::releaseUrl() const { const juce::ScopedLock sl (lock); return htmlUrl; }
 juce::String UpdateChecker::errorText() const { const juce::ScopedLock sl (lock); return error; }
 juce::File UpdateChecker::downloadedFile() const { const juce::ScopedLock sl (lock); return downloaded; }
+juce::String UpdateChecker::assetName() const { const juce::ScopedLock sl (lock); return asset; }
+
+juce::String UpdateChecker::platformKeyword()
+{
+   #if JUCE_MAC
+    return "macOS";
+   #else
+    return "win64";
+   #endif
+}
+
+int UpdateChecker::selectAsset (const juce::StringArray& names)
+{
+    for (int i = 0; i < names.size(); ++i)
+        if (names[i].endsWithIgnoreCase (".zip") && names[i].containsIgnoreCase (platformKeyword()))
+            return i;
+   #if ! JUCE_MAC
+    // Old releases (v1.0.0 .. v1.1.1) have only one zip, without a platform name: Windows.
+    for (int i = 0; i < names.size(); ++i)
+        if (names[i].endsWithIgnoreCase (".zip") && ! names[i].containsIgnoreCase ("mac"))
+            return i;
+   #endif
+    return -1;
+}
 
 void UpdateChecker::startCheck()
 {
@@ -113,24 +137,26 @@ void UpdateChecker::doCheck()
         return;
     }
 
+    // Select the zip for this operating system (Windows: "win64", macOS: "macOS").
     juce::String zipUrl, zipName;
     if (auto* assets = json.getProperty ("assets", {}).getArray())
+    {
+        juce::StringArray names;
         for (const auto& a : *assets)
+            names.add (a.getProperty ("name", {}).toString());
+        const int i = selectAsset (names);
+        if (i >= 0)
         {
-            const auto name = a.getProperty ("name", {}).toString();
-            if (name.endsWithIgnoreCase (".zip"))
-            {
-                zipUrl = a.getProperty ("browser_download_url", {}).toString();
-                zipName = name;
-                break;
-            }
+            zipUrl = (*assets)[i].getProperty ("browser_download_url", {}).toString();
+            zipName = names[i];
         }
+    }
 
     const juce::ScopedLock sl (lock);
     latest = tag.trimCharactersAtStart ("vV");
     htmlUrl = json.getProperty ("html_url", {}).toString();
     assetUrl = zipUrl;
-    assetName = zipName;
+    asset = zipName;
     state = isNewer (latest, currentVersion()) ? Status::Available : Status::UpToDate;
 }
 
@@ -140,7 +166,7 @@ void UpdateChecker::doDownload()
     {
         const juce::ScopedLock sl (lock);
         urlText = assetUrl;
-        name = assetName;
+        name = asset;
     }
     auto folder = juce::File::getSpecialLocation (juce::File::userHomeDirectory).getChildFile ("Downloads");
     if (! folder.isDirectory())

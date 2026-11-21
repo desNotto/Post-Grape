@@ -1,0 +1,89 @@
+# Post-Grape — macOS build (VST3 + AU, universal binary: Apple Silicon + Intel).
+# - Push to main: build and test only.
+# - Release published: build, test, attach Post-Grape-v<version>-macOS.zip to the release,
+#   then test the update check against GitHub (the macOS plugin must find its own zip).
+# Note: upload the Windows zip first when you create a release. Old Windows plugins
+# (v1.0.0 .. v1.1.1) take the first zip of the release.
+name: macOS build
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to attach the macOS zip to (empty = build only)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    runs-on: macos-14
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag || github.ref }}
+
+      - name: Get JUCE 8
+        run: git clone --depth 1 --branch 8.0.17-security https://github.com/juce-framework/JUCE.git external/JUCE
+
+      - name: Configure (universal binary)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
+
+      - name: Build VST3, AU, Standalone, tests
+        run: cmake --build build --config Release --parallel 4
+
+      - name: DSP tests
+        run: ./build/PostGrapeTests
+
+      - name: Check the binaries (architectures, signature)
+        run: |
+          lipo -info "bin/Post-Grape/Post-Grape.vst3/Contents/MacOS/Post-Grape"
+          lipo -info "bin/Post-Grape/Post-Grape.component/Contents/MacOS/Post-Grape"
+          codesign --verify --verbose "bin/Post-Grape/Post-Grape.vst3"
+          codesign --verify --verbose "bin/Post-Grape/Post-Grape.component"
+
+      - name: Test host (load VST3, process audio, open editor)
+        run: |
+          cmake --build build --config Release --target PostGrapeHostTest --parallel 4
+          ./build/PostGrapeHostTest_artefacts/Release/PostGrapeHostTest
+
+      - name: Audio Unit validation (auval)
+        run: |
+          mkdir -p ~/Library/Audio/Plug-Ins/Components
+          cp -R bin/Post-Grape/Post-Grape.component ~/Library/Audio/Plug-Ins/Components/
+          killall -9 AudioComponentRegistrar || true
+          sleep 2
+          auval -a | grep -i "DsNt" || true
+          auval -v aufx PGrp DsNt
+
+      - name: Package
+        run: |
+          VERSION=$(sed -n 's/^project(PostGrape VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)
+          mkdir -p dist
+          cd bin && ditto -c -k --keepParent Post-Grape "../dist/Post-Grape-v${VERSION}-macOS.zip"
+          cd .. && unzip -l "dist/Post-Grape-v${VERSION}-macOS.zip" | head -20
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Post-Grape-macOS
+          path: dist/*.zip
+
+      - name: Attach the zip to the release
+        if: env.TAG != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" dist/*.zip --clobber --repo "${{ github.repository }}"
+
+      - name: Update check test (macOS finds and downloads its own zip)
+        if: env.TAG != ''
+        run: |
+          cmake --build build --config Release --target PostGrapeUpdateTest --parallel 4
+          ./build/PostGrapeUpdateTest_artefacts/Release/PostGrapeUpdateTest

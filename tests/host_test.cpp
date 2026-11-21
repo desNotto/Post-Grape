@@ -1,11 +1,14 @@
-// Post-Grape — manual test host. Loads the single-file VST3 from bin/Post-Grape/,
-// makes an instance, processes audio and checks the result. Not part of the plugin.
+// Post-Grape — manual test host. Loads the VST3 from bin/Post-Grape/
+// (Windows: one file, macOS: bundle), makes an instance, processes audio
+// and checks the result. Not part of the plugin.
 // Build: cmake --build build --target PostGrapeHostTest
-// The checks run on a worker thread. The main thread runs the message loop
-// (JUCE creates plugin instances with messages).
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <cstdio>
-#include <windows.h>
+#if JUCE_WINDOWS
+ #include <windows.h>
+#else
+ #include <unistd.h>
+#endif
 
 static int fails = 0;
 static void check (bool ok, const juce::String& name)
@@ -18,7 +21,7 @@ static void check (bool ok, const juce::String& name)
 static void runTests()
 {
     const juce::File file (POSTGRAPE_PLUGIN_PATH);
-    check (file.existsAsFile(), "single file exists: " + file.getFullPathName());
+    check (file.exists(), "plugin exists: " + file.getFullPathName());
 
     juce::VST3PluginFormat format;
     juce::OwnedArray<juce::PluginDescription> types;
@@ -97,6 +100,10 @@ int main()
     // Note: this console host has no host message loop. The JUCE VST3 module unload
     // does not finish in this setup, so the test ends the process here.
     // (The Standalone app and DAWs close the plugin correctly.)
+   #if JUCE_WINDOWS
     ::TerminateProcess (::GetCurrentProcess(), (unsigned) fails);
+   #else
+    _exit (fails);
+   #endif
     return fails;
 }

@@ -1,8 +1,8 @@
 # Post-Grape
 
-Guitar bus post-effect plugin (VST3, Windows x64). Author: **desNotto**.
+Guitar bus post-effect plugin (VST3 for Windows x64; VST3 and AU for macOS, Apple Silicon and Intel). Author: **desNotto**.
 
-Плагин пост-обработки гитарной шины (VST3, Windows x64). Автор: **desNotto**.
+Плагин пост-обработки гитарной шины (VST3 для Windows x64; VST3 и AU для macOS, Apple Silicon и Intel). Автор: **desNotto**.
 
 ![Post-Grape](design/screenshot.png)
 
@@ -203,15 +203,33 @@ Factory presets: Init, Drop A Wall, Djent Tight, Doom Fog, Wide Rhythm, Left Lea
 - The plugin checks GitHub for a new version one time each day when you open the plugin window. You can turn this off in the update window.
 - The plugin sends only one request to `api.github.com`. It does not send any user data.
 - **Download** saves the zip file to the Downloads folder and opens the folder.
-- The DAW locks the plugin file while the DAW is open. Thus: close the DAW, then extract the `Post-Grape` folder to `C:\Program Files\Common Files\VST3\` and replace the old file.
+- The DAW locks the plugin file while the DAW is open. Thus: close the DAW, then install the new files (see section 6) and replace the old files.
+- Each system downloads its own zip: Windows takes `…-win64.zip`, macOS takes `…-macOS.zip`.
 
 ## 6. Install
+
+### Windows
 
 1. Download `Post-Grape-vX.Y.Z-win64.zip` from [Releases](https://github.com/desNotto/Post-Grape/releases).
 2. Extract the folder `Post-Grape` to `C:\Program Files\Common Files\VST3\`. The folder contains one file: `Post-Grape.vst3` (single-file VST3).
 3. Scan the plugins in the DAW.
 
 Versions 1.0.0 – 1.1.0 installed a folder with the name `Post-Grape.vst3`. Delete this old folder before you install a new version. If you do not delete it, the DAW can show the plugin two times.
+
+### macOS (10.13 or later, Apple Silicon and Intel)
+
+1. Download `Post-Grape-vX.Y.Z-macOS.zip` from [Releases](https://github.com/desNotto/Post-Grape/releases) and open it. The folder `Post-Grape` contains two plugins.
+2. Copy `Post-Grape.vst3` to `~/Library/Audio/Plug-Ins/VST3/` (for Ableton Live, Reaper, Cubase, Studio One, Bitwig).
+3. Copy `Post-Grape.component` to `~/Library/Audio/Plug-Ins/Components/` (Audio Unit: for Logic Pro, GarageBand).
+4. Scan the plugins in the DAW.
+
+The plugin does not have an Apple notarization. If macOS blocks the plugin ("cannot be opened" or "damaged"), open Terminal and type:
+
+```
+xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Post-Grape.vst3 ~/Library/Audio/Plug-Ins/Components/Post-Grape.component
+```
+
+Then restart the DAW.
 
 ## 7. Build
 
@@ -227,6 +245,9 @@ build.bat
 If `external/JUCE` is not present, CMake downloads JUCE automatically.
 The build copies the plugin (one file) to `bin\Post-Grape\Post-Grape.vst3` and runs the DSP tests (`build\PostGrapeTests.exe`).
 To make the release zip, run `powershell -ExecutionPolicy Bypass -File tools\package.ps1`.
+
+**macOS:** Xcode command line tools, CMake 3.22+, Git. Run `./build.sh`. The result is `bin/Post-Grape/Post-Grape.vst3` and `bin/Post-Grape/Post-Grape.component` (universal binary).
+GitHub Actions (`.github/workflows/macos.yml`) builds and tests the macOS version for each push. When you publish a release, it attaches `Post-Grape-vX.Y.Z-macOS.zip` to the release automatically.
 
 ---
 
@@ -421,15 +442,33 @@ Mono-Maker убирает сигнал Side ниже частоты кроссо
 - Плагин проверяет новую версию на GitHub один раз в день, когда вы открываете окно плагина. Это можно выключить в окне обновления.
 - Плагин отправляет только один запрос на `api.github.com`. Он не отправляет никаких данных о пользователе.
 - **Download** сохраняет zip-файл в папку «Загрузки» и открывает эту папку.
-- Пока DAW открыта, она блокирует файл плагина. Поэтому: закройте DAW, распакуйте папку `Post-Grape` в `C:\Program Files\Common Files\VST3\` и замените старый файл.
+- Пока DAW открыта, она блокирует файл плагина. Поэтому: закройте DAW, установите новые файлы (см. раздел 6) и замените старые.
+- Каждая система скачивает свой zip: Windows берёт `…-win64.zip`, macOS берёт `…-macOS.zip`.
 
 ## 6. Установка
+
+### Windows
 
 1. Скачайте `Post-Grape-vX.Y.Z-win64.zip` со страницы [Releases](https://github.com/desNotto/Post-Grape/releases).
 2. Распакуйте папку `Post-Grape` в `C:\Program Files\Common Files\VST3\`. В папке один файл: `Post-Grape.vst3` (VST3 одним файлом).
 3. Пересканируйте плагины в DAW.
 
 Версии 1.0.0 – 1.1.0 устанавливали папку с именем `Post-Grape.vst3`. Удалите эту старую папку перед установкой новой версии. Если её не удалить, DAW может показать плагин два раза.
+
+### macOS (10.13 и новее, Apple Silicon и Intel)
+
+1. Скачайте `Post-Grape-vX.Y.Z-macOS.zip` со страницы [Releases](https://github.com/desNotto/Post-Grape/releases) и откройте его. В папке `Post-Grape` два плагина.
+2. Скопируйте `Post-Grape.vst3` в `~/Library/Audio/Plug-Ins/VST3/` (для Ableton Live, Reaper, Cubase, Studio One, Bitwig).
+3. Скопируйте `Post-Grape.component` в `~/Library/Audio/Plug-Ins/Components/` (Audio Unit: для Logic Pro, GarageBand).
+4. Пересканируйте плагины в DAW.
+
+У плагина нет нотаризации Apple. Если macOS блокирует плагин («не удаётся открыть» или «повреждён»), откройте Терминал и введите:
+
+```
+xattr -dr com.apple.quarantine ~/Library/Audio/Plug-Ins/VST3/Post-Grape.vst3 ~/Library/Audio/Plug-Ins/Components/Post-Grape.component
+```
+
+Затем перезапустите DAW.
 
 ## 7. Сборка
 
@@ -445,6 +484,9 @@ build.bat
 Если папки `external/JUCE` нет, CMake скачивает JUCE автоматически.
 Сборка копирует плагин (один файл) в `bin\Post-Grape\Post-Grape.vst3` и запускает DSP-тесты (`build\PostGrapeTests.exe`).
 Чтобы сделать zip для релиза, запустите `powershell -ExecutionPolicy Bypass -File tools\package.ps1`.
+
+**macOS:** Xcode command line tools, CMake 3.22+, Git. Запустите `./build.sh`. Результат: `bin/Post-Grape/Post-Grape.vst3` и `bin/Post-Grape/Post-Grape.component` (универсальный бинарник).
+GitHub Actions (`.github/workflows/macos.yml`) собирает и тестирует macOS-версию при каждом push. Когда вы публикуете релиз, он автоматически прикрепляет к релизу `Post-Grape-vX.Y.Z-macOS.zip`.
 
 ---
 

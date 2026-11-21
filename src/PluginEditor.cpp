@@ -474,14 +474,28 @@ void PostGrapeEditor::showUpdateResult()
         juce::URL (url.isNotEmpty() ? url : "https://github.com/" + juce::String (pg::UpdateChecker::kRepo) + "/releases").launchInDefaultBrowser();
     };
 
+   #if JUCE_MAC
+    const juce::String install = "Close the DAW. Open the zip file. Copy Post-Grape.vst3 to ~/Library/Audio/Plug-Ins/VST3 "
+                                 "and Post-Grape.component to ~/Library/Audio/Plug-Ins/Components. Replace the old files.";
+   #else
+    const juce::String install = "Close the DAW, then extract the Post-Grape folder to C:\\Program Files\\Common Files\\VST3 "
+                                 "and replace the old file.";
+   #endif
+
     switch (updates->status())
     {
         case S::Available:
+            if (updates->assetName().isEmpty())
+            {
+                showMessage ("Update available",
+                             "Post-Grape v" + latest + " is available. You have v" + cur + ".\n\n"
+                             "This release has no file for your system yet. Open the release page.",
+                             { { "Release notes", openReleasePage }, { "Later", nullptr } }, true);
+                break;
+            }
             showMessage ("Update available",
                          "Post-Grape v" + latest + " is available. You have v" + cur + ".\n\n"
-                         "Click Download. The plugin saves the zip file to the Downloads folder and opens the folder. "
-                         "Close the DAW, then extract the Post-Grape folder to C:\\Program Files\\Common Files\\VST3 "
-                         "and replace the old file.",
+                         "Click Download. The plugin saves the zip file to the Downloads folder and opens the folder. " + install,
                          { { "Download", [this] { updateDialogPending = true; updates->startDownload(); } },
                            { "Release notes", openReleasePage },
                            { "Later", nullptr } },
@@ -492,9 +506,7 @@ void PostGrapeEditor::showUpdateResult()
             break;
         case S::Downloaded:
             showMessage ("Download complete",
-                         "Saved: " + updates->downloadedFile().getFullPathName() + "\n\n"
-                         "Close the DAW. Extract the Post-Grape folder from the zip file to C:\\Program Files\\Common Files\\VST3 "
-                         "and replace the old file.",
+                         "Saved: " + updates->downloadedFile().getFullPathName() + "\n\n" + install,
                          { { "Open folder", [this] { updates->downloadedFile().revealToUser(); } }, { "OK", nullptr } });
             break;
         case S::DownloadError:
