@@ -20,7 +20,7 @@ html,body{margin:0;background:#dccbd7;font-family:Nunito,system-ui,sans-serif;co
 body{padding:24px;min-height:100vh}
 .hint{max-width:1200px;margin:0 auto 14px;font-size:13px;color:#5b3b62;line-height:1.45}
 .hint b{color:var(--deep)}
-#plugin{position:relative;width:1200px;height:820px;min-width:980px;min-height:700px;resize:both;overflow:hidden;
+#plugin{position:relative;width:1200px;height:856px;min-width:980px;min-height:700px;resize:both;overflow:hidden;
   background:radial-gradient(120% 90% at 50% 0%,#fbf2f8 0%,var(--win) 45%,#efdcea 100%);
   border-radius:18px;border:1px solid #d9b9d2;box-shadow:0 20px 60px #6b307433,inset 0 1px 0 #fff;
   display:flex;flex-direction:column;padding:0 14px 14px}
@@ -115,11 +115,48 @@ body{padding:24px;min-height:100vh}
 .resize{position:absolute;right:4px;bottom:4px;width:16px;height:16px;pointer-events:none;opacity:.6}
 .lim .screen{flex:1;min-width:0}
 .limctl{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;flex:none}
+/* v2: header extras, auto-gain, hint bar, update dialog */
+.flags{display:inline-flex;border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#f3e3f0}
+.flags button{border:0;background:transparent;padding:5px 7px;cursor:pointer;display:grid;place-items:center;opacity:.55;filter:saturate(.6)}
+.flags button.on{background:linear-gradient(#f3a6d6,#d873b4);opacity:1;filter:none}
+.flags svg{width:22px;height:15px;border-radius:3px;box-shadow:0 0 0 1px #0002}
+.upd{position:relative}
+.upd .badge{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:#c2458f;border:2px solid #fbf2f8;display:none}
+.upd.has .badge{display:block}
+.r3{grid-template-columns:3.3fr 1fr}
+.ag .body{flex-direction:column;gap:6px}
+.agtop{display:flex;gap:10px;align-items:stretch;flex:1;min-height:0}
+.agmeter{width:18px;border-radius:9px;border:1px solid var(--line2);background:linear-gradient(#f3e3ef,#ead6e6);position:relative;overflow:hidden;flex:none}
+.agmeter .zero{position:absolute;left:0;right:0;top:50%;height:1.5px;background:#d6aed0}
+.agmeter .fill{position:absolute;left:3px;right:3px;border-radius:4px;background:linear-gradient(#f3a6d6,#d873b4);box-shadow:0 0 6px #e98cc9}
+.agread{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.agread .big{font-size:20px;font-weight:900;color:var(--deep);letter-spacing:.02em}
+.agread .sm{font-size:10.5px;font-weight:700;color:var(--muted)}
+.agctl{display:flex;gap:6px;align-items:center;justify-content:center;flex:none}
+.hold{border:1px solid var(--line2);border-radius:12px;background:linear-gradient(#fff9fd,#f1dfee);font:800 11px Nunito;color:var(--muted);padding:4px 10px;cursor:pointer}
+.hold.on{background:linear-gradient(#f3a6d6,#d873b4);color:#fff}
+.hintbar{flex:none;height:28px;margin-top:10px;border-radius:14px;border:1px solid var(--line2);background:linear-gradient(#fdf6fb,#f3e3f0);
+  box-shadow:inset 0 1px 3px #6b307418;display:flex;align-items:center;gap:8px;padding:0 6px 0 8px;font-size:12px;font-weight:700;color:var(--deep);overflow:hidden}
+.hintbar img{width:18px}
+.hintbar .txt{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hintbar .txt b{color:var(--hot);font-weight:900;letter-spacing:.06em}
+.hintbar .txt i{font-style:normal;color:var(--plum);font-weight:900}
+.hintbar .ver{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.06em}
+.dlg{position:absolute;inset:0;background:#3d184933;display:none;place-items:center;z-index:5}
+.dlg.show{display:grid}
+.dlg .box{width:380px;border-radius:16px;border:1px solid var(--line2);background:linear-gradient(#fbf5f9,#f6e9f3);box-shadow:0 20px 50px #3d184955;padding:16px 18px;position:relative}
+.dlg h3{margin:0 0 8px 44px;font-size:17px;font-weight:900;color:var(--deep)}
+.dlg .box>img{position:absolute;left:14px;top:10px;width:34px}
+.dlg p{margin:6px 0;font-size:13px;font-weight:700;color:var(--deep);line-height:1.45}
+.dlg .row2{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.dlg .btn{border:1px solid var(--line2);border-radius:14px;background:linear-gradient(#fff9fd,#f1dfee);font:800 12px Nunito;color:var(--plum);padding:6px 14px;cursor:pointer}
+.dlg .btn.pri{background:linear-gradient(#f3a6d6,#d873b4);color:#fff;border-color:#cc6aa9}
+.dlg label{font-size:12px;font-weight:700;color:var(--muted);display:flex;gap:6px;align-items:center;margin-top:8px}
 .notes{max-width:1200px;margin:16px auto 0;font-size:13px;color:#5b3b62;line-height:1.5}
 </style>
 </head>
 <body>
-<div class="hint"><b>Post-Grape UI mockup v1</b> — knobs: drag up/down, double-click to reset. EQ nodes: drag in the graph. Grape buttons: module on/off. The window corner resizes freely. 100% / 125% changes scale.</div>
+<div class="hint"><b>Post-Grape UI mockup v2</b> — new: Auto-Gain module, RU/EN hint language (flags), hint bar at the bottom, update check (cloud button). Hover a knob to see the hint. — knobs: drag up/down, double-click to reset. EQ nodes: drag in the graph. Grape buttons: module on/off. The window corner resizes freely. 100% / 125% changes scale.</div>
 
 <div id="plugin">
   <div class="hdr">
@@ -134,7 +171,11 @@ body{padding:24px;min-height:100vh}
       <div class="pbtn" title="Preset folder"><svg viewBox="0 0 20 20"><path d="M3 5h5l2 2h7v9H3z" fill="#e7c6e3" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
     </div>
     <div class="right">
-      <div class="lat">LATENCY <b id="latv">0 smp</b></div>
+      <div class="flags" id="lang" title="Hint language / Язык подсказок">
+        <button data-l="ru" class="on" title="Русский"><svg viewBox="0 0 9 6"><rect width="9" height="2" fill="#fff"/><rect y="2" width="9" height="2" fill="#0039a6"/><rect y="4" width="9" height="2" fill="#d52b1e"/></svg></button>
+        <button data-l="en" title="English"><svg viewBox="0 0 19 10"><rect width="19" height="10" fill="#b22234"/><g fill="#fff"><rect y="0.77" width="19" height="0.77"/><rect y="2.31" width="19" height="0.77"/><rect y="3.85" width="19" height="0.77"/><rect y="5.38" width="19" height="0.77"/><rect y="6.92" width="19" height="0.77"/><rect y="8.46" width="19" height="0.77"/></g><rect width="7.6" height="5.38" fill="#3c3b6e"/><g fill="#fff"><circle cx="1.3" cy="1.1" r=".35"/><circle cx="3.3" cy="1.1" r=".35"/><circle cx="5.3" cy="1.1" r=".35"/><circle cx="2.3" cy="2.2" r=".35"/><circle cx="4.3" cy="2.2" r=".35"/><circle cx="6.3" cy="2.2" r=".35"/><circle cx="1.3" cy="3.3" r=".35"/><circle cx="3.3" cy="3.3" r=".35"/><circle cx="5.3" cy="3.3" r=".35"/><circle cx="2.3" cy="4.4" r=".35"/><circle cx="4.3" cy="4.4" r=".35"/></g></svg></button>
+      </div>
+      <div class="pbtn upd has" id="updbtn" title="Check for updates"><svg viewBox="0 0 20 20"><path d="M5.5 15.5h9a3.5 3.5 0 0 0 .4-7A5 5 0 0 0 5.3 8 3.8 3.8 0 0 0 5.5 15.5z" fill="#e7c6e3" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 8.5v5M7.8 11.4 10 13.6l2.2-2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="badge"></span></div>
       <div class="seg" id="zoom"><button class="on" data-z="1">100%</button><button data-z="1.25">125%</button></div>
     </div>
   </div>
@@ -247,13 +288,14 @@ body{padding:24px;min-height:100vh}
       </section>
     </div>
 
+    <div class="row r3">
     <!-- 7 LIMITER -->
     <section class="panel lim" id="m-lim">
       <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Bus Limiter</h2><span class="tag">SOFT CLIP → TRUE-PEAK BRICKWALL · OVERSAMPLED</span></div>
       <div class="body">
         <div class="screen" id="limscreen"><canvas id="limc"></canvas>
-          <div class="chip" style="left:10px;top:8px">INPUT <span style="color:#b39ab8">▬</span> &nbsp; OUTPUT <span style="color:#e06fb6">▬</span> &nbsp; GAIN REDUCTION <span style="color:#6b3074">▬</span></div>
-          <div class="chip" style="right:10px;top:8px" id="limchip">CEILING −0.3 dBTP · GR −2.4 dB</div>
+          <div class="chip" style="left:10px;top:8px">IN <span style="color:#b39ab8">▬</span> &nbsp; OUT <span style="color:#e06fb6">▬</span> &nbsp; GR <span style="color:#6b3074">▬</span></div>
+          <div class="chip" style="right:10px;top:8px" id="limchip">−0.3 dBTP · GR −2.4 dB</div>
           <img src="img/grapes.png" style="position:absolute;left:-6px;bottom:-8px;width:40px;opacity:.95" alt=""><img src="img/leaf.png" style="position:absolute;right:-4px;bottom:-6px;width:30px" alt="">
         </div>
         <div class="knobs" style="flex:none;width:236px;gap:4px 12px">
@@ -280,11 +322,35 @@ body{padding:24px;min-height:100vh}
       </div>
       
     </section>
+
+    <!-- 8 AUTO-GAIN -->
+    <section class="panel ag" id="m-ag">
+      <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Auto-Gain</h2><span class="tag">MATCH INPUT</span></div>
+      <div class="body">
+        <div class="agtop">
+          <div class="agmeter"><div class="zero"></div><div class="fill" id="agfill"></div></div>
+          <div class="agread"><div class="big" id="agval">−3.4 dB</div><div class="sm" id="agio">IN −14.2 · OUT −10.8 LUFS</div></div>
+        </div>
+        <div class="knobs" style="flex:none">
+          <div data-knob="agSpeed" data-label="SPEED" data-min="0.3" data-max="10" data-def="3" data-log="1" data-unit="s" data-size="44"></div>
+          <div data-knob="agRange" data-label="RANGE" data-min="0" data-max="24" data-def="12" data-unit="dB" data-size="44"></div>
+          <div data-knob="agTrim" data-label="TRIM" data-min="-12" data-max="12" data-def="0" data-unit="dB" data-size="44" data-bip="1"></div>
+        </div>
+        <div class="agctl"><div class="seg" id="agdet"><button class="on">LUFS</button><button>RMS</button></div><button class="hold" id="aghold">HOLD</button></div>
+      </div>
+    </section>
+    </div>
   </div>
+  <div class="hintbar"><img src="img/grapes.png" alt=""><div class="txt" id="hint"></div><div class="lat">LATENCY <b id="latv">0 smp</b></div><span class="ver">v1.1.0</span></div>
+  <div class="dlg" id="dlg"><div class="box"><img src="img/grapes.png" alt=""><h3>Update available</h3>
+    <p>Post-Grape <b>v1.1.0</b> is available. You have v1.0.1.</p>
+    <p>Click <b>Download</b>. The plugin saves the zip file to the Downloads folder and opens the folder. Close the DAW, then replace Post-Grape.vst3 in C:\Program Files\Common Files\VST3.</p>
+    <label><input type="checkbox" checked> Check for updates when the plugin opens (one time each day)</label>
+    <div class="row2"><button class="btn" data-x="1">Release notes</button><button class="btn" data-x="1">Later</button><button class="btn pri" data-x="1">Download</button></div></div></div>
   <svg class="resize" viewBox="0 0 16 16"><path d="M15 5L5 15M15 10l-5 5" stroke="#8e6a92" stroke-width="1.6" stroke-linecap="round"/></svg>
 </div>
 
-<div class="notes">Chain order: Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter.</div>
+<div class="notes">Chain order: Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter → Auto-Gain.</div>
 
 <script>
 const P = {};               // parameter values
@@ -465,7 +531,7 @@ function frame(){
   g.fillStyle=og;g.shadowColor='#e47bc0';g.shadowBlur=10;g.beginPath();hist.forEach((h,i)=>{const y=mid-h[1]*sc;i?g.lineTo(i*dx,y):g.moveTo(0,y)});for(let i=hist.length-1;i>=0;i--)g.lineTo(i*dx,mid+hist[i][1]*sc);g.fill();g.shadowBlur=0;
   g.strokeStyle='#6b3074';g.lineWidth=2;g.beginPath();hist.forEach((h,i)=>{const db=-20*Math.log10(h[2]);const y=4+db/12*(H*.45);i?g.lineTo(i*dx,y):g.moveTo(0,y)});g.stroke();
   const last=hist[hist.length-1]||[0,0,1];const grdb=-20*Math.log10(last[2]);
-  document.getElementById('limchip').textContent=`CEILING ${P.lmCeil.toFixed(1)} dBTP · GR −${grdb.toFixed(1)} dB`;
+  document.getElementById('limchip').textContent=`${P.lmCeil.toFixed(1)} dBTP · GR −${grdb.toFixed(1)} dB`;
   const lvl=v=>Math.max(0,1+20*Math.log10(Math.max(v,1e-4))/60);
   setLed(M.inL,lvl(last[0]));setLed(M.inR,lvl(last[0]*.93));setLed(M.outL,lvl(last[1]));setLed(M.outR,lvl(last[1]*.97));
   setLed(M.limgr,grdb/12,true);setLed(M.compgr,(Math.sin(t/30)*.5+.5)*.5,true);
@@ -476,7 +542,121 @@ function frame(){
   requestAnimationFrame(frame)}
 function redrawAll(){drawEQ();drawMono();drawPan()}
 new ResizeObserver(redrawAll).observe(document.getElementById('plugin'));
-simWarm=true;loadBand();document.fonts.ready.then(redrawAll);redrawAll();frame();
+simWarm=true;/* ---------- v2: hints (RU / EN), language, auto-gain demo, update dialog ---------- */
+/* The same texts go into the plugin (src/gui/Hints.cpp). */
+const MOD={
+ 'm-eq':{en:'Removes rumble, fizz and resonances. Each band works on Stereo, Mid or Side.',ru:'Убирает гул, «песок» и резонансы. Каждая полоса работает на Stereo, Mid или Side.'},
+ 'm-comp':{en:'Compresses only the low band below SPLIT. The pick attack stays open.',ru:'Сжимает только низкую полосу ниже SPLIT. Атака медиатора остаётся открытой.'},
+ 'm-wide':{en:'Makes the double-track wider or narrower with Mid/Side. No delay, mono stays safe.',ru:'Делает даблтрек шире или уже через Mid/Side. Без задержки, моно остаётся безопасным.'},
+ 'm-mono':{en:'Makes the low end mono below FREQ. No phase cancellation.',ru:'Делает низ моно ниже FREQ. Без фазового подавления.'},
+ 'm-pan':{en:'Moves both guitars to the left or right. No guitar becomes silent.',ru:'Сдвигает обе гитары влево или вправо. Ни одна гитара не пропадает.'},
+ 'm-lofi':{en:'Lo-fi sound: narrow band, bits, noise, wobble. Automate the LOFI switch.',ru:'Лоу-фай звук: узкая полоса, биты, шум, плавание тона. Автоматизируйте переключатель LOFI.'},
+ 'm-lim':{en:'Soft clip and true-peak limiter. Controls the pick transients and sets the maximum level.',ru:'Мягкий клиппер и true-peak лимитер. Контролирует атаку медиатора и задаёт максимальный уровень.'},
+ 'm-ag':{en:'Sets the output loudness equal to the input loudness. Use it for a fair A/B comparison.',ru:'Выравнивает громкость выхода по громкости входа. Используйте для честного сравнения A/B.'}};
+const KN={
+ eqF:['Frequency of the selected band.','Частота выбранной полосы.'], eqG:['Boost or cut of the selected band.','Подъём или срез выбранной полосы.'],
+ eqQ:['Width of the band. High Q = narrow. Use Q 10–20 to remove a resonance.','Ширина полосы. Большой Q = узко. Q 10–20 убирает резонанс.'],
+ hp:['Removes the frequencies below this value.','Убирает частоты ниже этого значения.'], lp:['Removes the frequencies above this value.','Убирает частоты выше этого значения.'],
+ eqOut:['Output level of the EQ.','Выходной уровень эквалайзера.'],
+ cSplit:['Crossover frequency. The compressor works below it.','Частота разделения. Компрессор работает ниже неё.'],
+ cThr:['The compressor starts above this level.','Компрессор начинает работать выше этого уровня.'], cRat:['Amount of compression. 1:1 = none.','Степень сжатия. 1:1 = нет сжатия.'],
+ cAtt:['Time to start the gain reduction.','Время начала снижения усиления.'], cRel:['Time to stop the gain reduction.','Время прекращения снижения усиления.'],
+ cSc:['The detector ignores the frequencies below this value.','Детектор не реагирует на частоты ниже этого значения.'],
+ cLink:['100% = same gain reduction in left and right.','100% = одинаковое снижение усиления слева и справа.'], cMk:['Adds gain to the low band.','Добавляет усиление низкой полосе.'],
+ wW:['Stereo width. 0% = mono, 100% = no change.','Стерео-ширина. 0% = моно, 100% = без изменений.'], wAir:['Adds width to the high frequencies.','Добавляет ширину на высоких частотах.'],
+ wLo:['Removes stereo below this frequency.','Убирает стерео ниже этой частоты.'],
+ mF:['Below this frequency the sound becomes mono.','Ниже этой частоты звук становится моно.'], mW:['Width below FREQ. 0% = full mono.','Ширина ниже FREQ. 0% = полное моно.'],
+ pP:['Moves both guitars to the left or right.','Сдвигает обе гитары влево или вправо.'], pW:['Distance between the guitars. 0% = mono.','Расстояние между гитарами. 0% = моно.'],
+ lMix:['Mix of lo-fi and original sound.','Смесь лоу-фай и исходного звука.'], lTone:['Center of the band. Low = dark "telephone" sound.','Центр полосы. Мало = тёмный «телефонный» звук.'],
+ lBits:['Bit depth. Fewer bits = more digital noise.','Разрядность. Меньше бит = больше цифрового шума.'], lRate:['Sample rate. Low = metallic aliasing.','Частота дискретизации. Мало = металлический алиасинг.'],
+ lNoise:['Hiss and vinyl crackle.','Шипение и треск винила.'], lWob:['Slow pitch drift (tape wobble).','Медленное плавание тона (детонация плёнки).'], lDrv:['Soft saturation. The level is compensated.','Мягкая сатурация. Уровень компенсируется.'],
+ lmIn:['Input gain. More gain = louder and more limiting.','Входное усиление. Больше = громче и сильнее лимитирование.'],
+ lmClip:['Rounds the peaks before the limiter.','Скругляет пики перед лимитером.'], lmCeil:['Maximum output level (true peak).','Максимальный выходной уровень (true peak).'],
+ lmRel:['Base release time.','Базовое время восстановления.'], lmAdapt:['Slower release on long gain reduction. Prevents low-end distortion.','Медленнее восстановление при долгом сжатии. Предотвращает искажения низа.'],
+ lmOut:['Output level after the limiter.','Выходной уровень после лимитера.'],
+ agSpeed:['How fast the gain follows the loudness change.','Как быстро усиление следует за изменением громкости.'],
+ agRange:['Maximum gain correction (up and down).','Максимальная коррекция усиления (вверх и вниз).'],
+ agTrim:['Offset after the matching. 0 dB = equal loudness.','Сдвиг после выравнивания. 0 дБ = равная громкость.']};
+const IDLE={en:'Move the mouse over a module or a knob to see the description.',ru:'Наведите курсор на модуль или ручку, чтобы увидеть описание.'};
+let lang='ru';
+const hintEl=document.getElementById('hint');
+// Mouse over a module: module hint. Mouse over a knob: knob hint only.
+let hovered=null, hoveredPanel=null;
+function showHint(){
+  if(hovered&&hovered.dataset.knob){const k=hovered.dataset.knob;const lbl=hovered.querySelector('.lbl').textContent;
+    hintEl.innerHTML='<b>'+lbl+'</b> — '+(KN[k]?KN[k][lang==='en'?0:1]:'');return}
+  if(hovered&&hovered.dataset.hint){const t=BT[hovered.dataset.hint];
+    hintEl.innerHTML='<b>'+hovered.dataset.hintLabel+'</b> — '+(t?t[lang==='en'?0:1]:'');return}
+  if(hoveredPanel){const title=hoveredPanel.querySelector('h2').textContent.toUpperCase();
+    hintEl.innerHTML='<b>'+title+'</b> — '+MOD[hoveredPanel.id][lang];return}
+  hintEl.textContent=IDLE[lang];
+}
+document.querySelectorAll('.panel').forEach(p=>{p.addEventListener('mouseenter',()=>{hoveredPanel=p;showHint()});p.addEventListener('mouseleave',()=>{hoveredPanel=null;showHint()})});
+document.querySelectorAll('.knob').forEach(el=>{el.addEventListener('mouseenter',()=>{hovered=el;showHint()});el.addEventListener('mouseleave',()=>{hovered=null;showHint()})});
+seg('lang',d=>{lang=d.l;showHint()});
+// Hints for buttons and switches.
+const BT={
+ power:['Turns the module on or off.','Включает или выключает модуль.'],
+ band:['Selects the EQ band for the FREQ, GAIN and Q knobs.','Выбирает полосу эквалайзера для ручек FREQ, GAIN и Q.'],
+ ST:['The band works on the left and right channels.','Полоса работает на левом и правом каналах.'],
+ MID:['The band works on the center (both guitars together).','Полоса работает на центре (обе гитары вместе).'],
+ SIDE:['The band works on the stereo difference (the width).','Полоса работает на стерео-разнице (ширине).'],
+ PK:['Boost or cut near the frequency.','Подъём или срез около частоты.'],
+ NT:['Full cut at the frequency. GAIN has no effect.','Полный срез на частоте. GAIN не работает.'],
+ LS:['Boost or cut below the frequency.','Подъём или срез ниже частоты.'],
+ HS:['Boost or cut above the frequency.','Подъём или срез выше частоты.'],
+ eqgraph:['Drag a node: frequency and gain. Mouse wheel: Q. Double-click: gain 0 dB.','Тяните точку: частота и усиление. Колесо мыши: Q. Двойной клик: усиление 0 дБ.'],
+ look0:['No latency. For live play.','Без задержки. Для игры вживую.'],
+ look1:['Exact true peak. Adds 1.5 ms of latency.','Точный true peak. Добавляет задержку 1.5 мс.'],
+ look2:['Exact true peak, the smoothest. Adds 5 ms of latency. For mixing.','Точный true peak, самый плавный. Задержка 5 мс. Для сведения.'],
+ os0:['4x oversampling. Low CPU load.','Оверсэмплинг 4×. Малая нагрузка на процессор.'],
+ os1:['8x oversampling. More accurate peaks.','Оверсэмплинг 8×. Более точные пики.'],
+ os2:['16x oversampling. The most accurate. The highest CPU load.','Оверсэмплинг 16×. Самый точный. Самая большая нагрузка на процессор.'],
+ lofisw:['Turns the lo-fi sound on or off. Automate it in the song.','Включает или выключает лоу-фай звук. Автоматизируйте его в песне.'],
+ lufs:['Measures the loudness as the ear hears it (K-weighting). Best for matching by ear.','Измеряет громкость так, как слышит ухо (K-взвешивание). Лучше всего для выравнивания на слух.'],
+ rms:['Measures the plain signal energy. The low end has more weight.','Измеряет чистую энергию сигнала. Низ весит больше.'],
+ hold:['Freezes the current gain. Then you hear the real level change of the knobs.','Замораживает текущее усиление. Тогда слышно настоящее изменение уровня от ручек.'],
+ prev:['Loads the previous preset.','Загружает предыдущий пресет.'],
+ next:['Loads the next preset.','Загружает следующий пресет.'],
+ pname:['Opens the preset list.','Открывает список пресетов.'],
+ save:['Saves the settings as a user preset.','Сохраняет настройки как пользовательский пресет.'],
+ rename:['Gives a new name to the user preset.','Даёт пользовательскому пресету новое имя.'],
+ del:['Deletes the user preset. The file goes to the Recycle Bin.','Удаляет пользовательский пресет. Файл попадает в Корзину.'],
+ folder:['Opens the user preset folder.','Открывает папку пользовательских пресетов.'],
+ ru:['Hint language: Russian.','Язык подсказок: русский.'],
+ en:['Hint language: English.','Язык подсказок: английский.'],
+ upd:['Checks for a new version on GitHub.','Проверяет новую версию на GitHub.'],
+ z100:['Window scale 100 %.','Масштаб окна 100 %.'],
+ z125:['Window scale 125 %.','Масштаб окна 125 %.']};
+function tag(el,key,label){if(!el)return;el.dataset.hint=key;el.dataset.hintLabel=label||el.textContent.trim();
+  el.addEventListener('mouseenter',()=>{hovered=el;showHint()});el.addEventListener('mouseleave',()=>{hovered=null;showHint()})}
+const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
+$$('.pwr').forEach(el=>tag(el,'power','POWER'));
+$$('#bandsel button').forEach(el=>tag(el,'band','BAND '+el.textContent));
+$$('#bandtgt button').forEach(el=>tag(el,el.dataset.t));
+$$('#bandtype button').forEach(el=>tag(el,el.dataset.y));
+tag($('#eqscreen'),'eqgraph','EQ GRAPH');
+$$('#look button').forEach((el,i)=>tag(el,'look'+i,'LOOKAHEAD '+el.textContent));
+$$('#os button').forEach((el,i)=>tag(el,'os'+i,'OVERSAMPLING '+el.textContent));
+tag($('#lofisw'),'lofisw','LOFI');
+const det=$$('#agdet button');tag(det[0],'lufs');tag(det[1],'rms');
+tag($('#aghold'),'hold');
+const pb=$$('.presets .pbtn');['prev','next','save','rename','del','folder'].forEach((k,i)=>tag(pb[i],k,['PREVIOUS','NEXT','SAVE','RENAME','DELETE','FOLDER'][i]));
+tag($('.pname'),'pname','PRESET');
+$$('#lang button').forEach(el=>tag(el,el.dataset.l,el.dataset.l==='ru'?'RU':'EN'));
+tag($('#updbtn'),'upd','UPDATE');
+$$('#zoom button').forEach((el,i)=>tag(el,i?'z125':'z100'));
+
+showHint();
+document.getElementById('aghold').addEventListener('click',e=>e.target.classList.toggle('on'));
+seg('agdet');
+let agT=0;setInterval(()=>{agT++;const g=-3.4+Math.sin(agT/25)*0.6;const f=document.getElementById('agfill');const h=Math.min(50,Math.abs(g)/24*50*2.2);
+  f.style.top=g>=0?(50-h)+'%':'50%';f.style.height=h+'%';document.getElementById('agval').textContent=(g>=0?'+':'−')+Math.abs(g).toFixed(1)+' dB'},80);
+const dlg=document.getElementById('dlg');
+document.getElementById('updbtn').addEventListener('click',()=>dlg.classList.add('show'));
+dlg.querySelectorAll('[data-x]').forEach(b=>b.addEventListener('click',()=>dlg.classList.remove('show')));
+
+loadBand();document.fonts.ready.then(redrawAll);redrawAll();frame();
 </script>
 </body>
 </html>

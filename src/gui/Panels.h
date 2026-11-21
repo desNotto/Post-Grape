@@ -2,6 +2,7 @@
 #pragma once
 
 #include "Displays.h"
+#include "dsp/AutoGain.h"
 #include "Widgets.h"
 
 class PostGrapeProcessor;
@@ -9,11 +10,12 @@ class PostGrapeProcessor;
 namespace pg::ui
 {
 // Frame with screws, title, tag and a power button. Subclasses add the body.
-class ModulePanel : public juce::Component
+class ModulePanel : public juce::Component, public HintSource
 {
 public:
-    ModulePanel (juce::AudioProcessorValueTreeState& state, const juce::String& title, const juce::String& tag,
-                 const juce::String& powerParam, bool leaf = false);
+    ModulePanel (juce::AudioProcessorValueTreeState& state, const juce::String& moduleKey, const juce::String& title,
+                 const juce::String& tag, const juce::String& powerParam, bool leaf = false);
+    bool getHint (juce::Point<int>, juce::String& key, juce::String& label) const override;
 
     void setZ (float zIn) { z = zIn; }
     void paint (juce::Graphics&) override;
@@ -32,7 +34,7 @@ protected:
     float z = 1.0f;
 
 private:
-    juce::String title, tag;
+    juce::String key, title, tag;
     bool leafDeco;
     PowerButton power;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> powerAttachment;
@@ -143,5 +145,24 @@ private:
     LedMeter inL { 16, false }, inR { 16, false }, grM { 12, true }, outL { 16, false }, outR { 16, false };
     juce::Rectangle<int> lookLabel, osLabel, meterArea;
     float shown[5] = {};
+};
+
+class AutoGainPanel : public ModulePanel
+{
+public:
+    AutoGainPanel (juce::AudioProcessorValueTreeState&, pg::AutoGain& autoGain);
+    void refresh() override;
+    void paintOverChildren (juce::Graphics&) override;
+
+private:
+    void layoutBody (juce::Rectangle<int>) override;
+    pg::AutoGain& ag;
+    GainMeter meter;
+    Knob speed, range, trim;
+    Segmented detect { { "LUFS", "RMS" } };
+    PillToggle hold { "HOLD" };
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> holdAttachment;
+    juce::Rectangle<int> readArea;
+    float shownGain = 0.0f, inLvl = -100.0f, outLvl = -100.0f;
 };
 } // namespace pg::ui

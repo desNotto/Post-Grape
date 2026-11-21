@@ -5,6 +5,8 @@ param(
     [int]$Width = 0,
     [int]$Height = 0,
     [int]$Wait = 4,
+    [int]$HoverX = -1,
+    [int]$HoverY = -1,
     [int]$ClickX = -1,
     [int]$ClickY = -1,
     [switch]$Keep
@@ -32,6 +34,13 @@ public static class Win {
         System.Threading.Thread.Sleep(80);
         PostMessage(h, 0x0202, IntPtr.Zero, lp);
     }
+    // Move the real mouse cursor over a window point (window-relative pixels).
+    public static void Hover(IntPtr h, int x, int y) {
+        RECT r; GetWindowRect(h, out r);
+        SetCursorPos(r.L + x, r.T + y);
+        System.Threading.Thread.Sleep(200);
+        SetCursorPos(r.L + x + 1, r.T + y + 1);
+    }
     [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
     public static Bitmap Capture(IntPtr h) {
         RECT r; GetWindowRect(h, out r);
@@ -57,6 +66,10 @@ for ($i = 0; $i -lt 50 -and $h -eq [IntPtr]::Zero; $i++) {
 }
 if ($Width -gt 0) {
     [Win]::SetWindowPos($h, [IntPtr]::Zero, 40, 40, $Width, $Height, 0x0004) | Out-Null
+}
+if ($HoverX -ge 0) {
+    Start-Sleep -Seconds 2
+    [Win]::Hover($h, $HoverX, $HoverY)
 }
 if ($ClickX -ge 0) {
     Start-Sleep -Seconds 2

@@ -359,6 +359,111 @@ int main()
         check (finite, "Engine with Lofi (wobble, noise): finite output", 1.0);
     }
 
+    // ---- Auto-Gain ----
+    {
+        // Guitar-like test signal: band-limited noise chugs, 10 s.
+        const int n = (int) (fs * 10.0);
+        auto makeSignal = [&] (std::vector<double>& L, std::vector<double>& R, double amp) {
+            L.assign ((size_t) n, 0.0); R.assign ((size_t) n, 0.0);
+            SvfCoefs lp, hp; lp.design (SvfType::LowPass, fs, 5000.0, 0.7071); hp.design (SvfType::HighPass, fs, 70.0, 0.7071);
+            SvfState a[2], b[2]; Random rnd (1234);
+            for (int i = 0; i < n; ++i)
+            {
+                const double t = i / fs;
+                const double env = std::fmod (t, 0.25) < 0.17 ? 1.0 : 0.25;
+                for (int c = 0; c < 2; ++c)
+                {
+                    double x = env * (0.6 * std::tanh (6.0 * std::sin (2 * kPi * 55.0 * t * (c ? 1.004 : 1.0))) + 0.3 * rnd.nextBipolar());
+                    (c ? R : L)[(size_t) i] = amp * b[c].process (lp, a[c].process (hp, x));
+                }
+            }
+        };
+        // K-weighted loudness of the last 3 s.
+        auto loudness = [&] (const std::vector<double>& L, const std::vector<double>& R) {
+            LoudnessDetector d; d.prepare (fs);
+            double sum = 0.0; int cnt = 0;
+            for (int i = 0; i < n; ++i)
+            {
+                const double p = d.power (L[(size_t) i], R[(size_t) i], true);
+                if (i >= n - (int) (fs * 3.0)) { sum += p; ++cnt; }
+            }
+            return LoudnessDetector::levelDb (sum / cnt, true);
+        };
+        auto runEngine = [&] (EngineSettings s, std::vector<double>& L, std::vector<double>& R) {
+            Engine e; e.setSettings (s); e.setSampleRate (fs); e.prepare (fs, 512);
+            for (int pos = 0; pos < n; pos += 512)
+            {
+                const int len = std::min (512, n - pos);
+                e.process (L.data() + pos, R.data() + pos, len);
+            }
+        };
+
+        std::vector<double> L, R;
+        makeSignal (L, R, 0.25);
+        const double inLufs = loudness (L, R);
+
+        // 1. Limiter +12 dB, Auto-Gain on: output loudness = input loudness.
+        {
+            EngineSettings s;
+            for (auto& o : s.on) o = false;
+            s.on[kLim] = true; s.on[kAg] = true;
+            s.lim.inGainDb = 12.0; s.lim.ceilingDb = -0.3;
+            auto l = L, r = R;
+            runEngine (s, l, r);
+            const double diff = loudness (l, r) - inLufs;
+            check (std::abs (diff) < 1.0, "Auto-Gain: limiter +12 dB, loudness difference (dB)", diff);
+            double pk = 0.0;
+            for (double v : l) pk = std::max (pk, std::abs (v));
+            check (gainToDb (pk) <= -0.3 + 1e-9, "Auto-Gain: sample peak <= ceiling (dBFS)", gainToDb (pk));
+        }
+        // 2. Auto-Gain alone: almost no change.
+        {
+            EngineSettings s;
+            for (auto& o : s.on) o = false;
+            s.on[kAg] = true;
+            auto l = L, r = R;
+            runEngine (s, l, r);
+            const double diff = loudness (l, r) - inLufs;
+            check (std::abs (diff) < 0.1, "Auto-Gain alone: loudness difference (dB)", diff);
+        }
+        // 3. EQ output -9 dB, TRIM +2 dB: output = input + 2 dB (boost with peak safety).
+        {
+            EngineSettings s;
+            for (auto& o : s.on) o = false;
+            s.on[kEq] = true; s.on[kAg] = true;
+            s.eq.outDb = -9.0; s.ag.trimDb = 2.0;
+            auto l = L, r = R;
+            runEngine (s, l, r);
+            const double diff = loudness (l, r) - inLufs;
+            check (std::abs (diff - 2.0) < 0.5, "Auto-Gain: EQ -9 dB, TRIM +2 dB: difference (dB)", diff);
+        }
+        // 4. Silence: the gain does not change.
+        {
+            AutoGain ag;
+            AutoGainSettings s;
+            ag.setSettings (s);
+            ag.prepare (fs, 512);
+            std::vector<double> l (L.begin(), L.begin() + (int) fs * 5), r (R.begin(), R.begin() + (int) fs * 5);
+            std::vector<double> inl = l, inr = r;
+            for (auto& v : l) v *= 0.5; // processed signal is 6 dB quieter
+            for (auto& v : r) v *= 0.5;
+            for (int pos = 0; pos + 512 <= (int) l.size(); pos += 512)
+            {
+                ag.setInput (inl.data() + pos, inr.data() + pos);
+                ag.process (l.data() + pos, r.data() + pos, 512);
+            }
+            const double before = ag.matchedGainDb();
+            std::vector<double> z (512, 0.0), z2 (512, 0.0), zi (512, 0.0);
+            for (int k = 0; k < (int) (fs * 3.0 / 512); ++k)
+            {
+                ag.setInput (zi.data(), zi.data());
+                ag.process (z.data(), z2.data(), 512);
+            }
+            check (std::abs (ag.matchedGainDb() - before) < 0.01, "Auto-Gain: gain holds in silence (dB change)", ag.matchedGainDb() - before);
+            check (std::abs (before - 6.02) < 0.5, "Auto-Gain: -6 dB processed signal, matched gain (dB)", before);
+        }
+    }
+
     std::printf ("\n%s: %d failure(s)\n", failures == 0 ? "ALL PASS" : "FAILED", failures);
     return failures == 0 ? 0 : 1;
 }

@@ -25,7 +25,7 @@ The plugin is for extremely low tunings and high-gain guitars.
 ## 2. Signal chain
 
 ```
-IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter → OUT
+IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter → Auto-Gain → OUT
 ```
 
 ## 3. Controls for all modules
@@ -36,6 +36,7 @@ IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan �
 | Knob: drag up or down | Changes the value. |
 | Knob: hold Shift, click and drag | Changes the value 5 times slower (fine adjustment). |
 | Knob: double-click | Sets the default value. |
+| Hint bar (bottom of the window) | Move the mouse over a module: the bar shows what the module does. Move the mouse over a knob, a switch or a button: the bar shows what this control does. |
 
 The DAW can automate all knobs and all switches.
 
@@ -157,6 +158,27 @@ The release is program dependent. Thus there is no distortion of the low frequen
 | Display | — | Gray area: input signal. Pink area: output signal. Dark line: gain reduction (top = 0 dB). Dashed lines: ceiling. |
 | IN / GR / OUT meters | — | Input level (left, right), gain reduction, output level (left, right). |
 
+### 4.8 Auto-Gain
+
+**Function.** The Auto-Gain is the last module. It measures the loudness at the plugin input (before all modules) and at the plugin output.
+It sets the output loudness equal to the input loudness.
+Use it for a fair A/B comparison: when you turn modules on and off, the loudness stays the same. Thus you hear the change of the tone, not the change of the level.
+The module has zero latency. The default is off.
+
+| Control | Range | Function |
+|---------|-------|----------|
+| SPEED | 0.3 – 10 s | Time to follow a loudness change. Long time = smooth gain, no "breathing". Short time = fast follow, but the gain can follow the dynamics of the riff. |
+| RANGE | 0 – 24 dB | Maximum gain correction (up and down). 0 dB = no correction. |
+| TRIM | −12 … +12 dB | Offset after the matching. 0 dB = equal loudness. +2 dB = the output is 2 dB louder than the input. |
+| LUFS / RMS | — | Loudness measurement. LUFS: K-weighting, as the ear hears (recommended). RMS: plain signal energy, the low end has more weight. |
+| HOLD | OFF / ON | Freezes the current gain. Play the riff, wait until the gain is stable, then push HOLD. Then you hear the real level change of the knobs. |
+| Gain meter | — | Gain that the module applies now. Up = boost, down = cut. Under the value: input and output loudness. |
+
+Notes:
+- In silence (input below −60 dB), the gain does not change.
+- A boost never pushes the peaks above the limiter ceiling (or above 0 dBFS when the limiter is off).
+- With Auto-Gain on, the limiter GAIN knob does not change the loudness. This is correct: you hear only the change of the density.
+
 ## 5. Header
 
 | Control | Function |
@@ -167,11 +189,21 @@ The release is program dependent. Thus there is no distortion of the low frequen
 | Rename button | Gives a new name to the user preset. You cannot rename a factory preset. |
 | Delete button | Deletes the user preset after a confirmation. The file goes to the Recycle Bin. You cannot delete a factory preset. |
 | Folder button | Opens the user preset folder: `Documents\desNotto\Post-Grape\Presets`. |
-| LATENCY | Shows the latency that the plugin reports to the DAW (samples). Green 0 = no latency. |
+| Flags (Russia / USA) | Language of the hints in the hint bar. Russian is the default. The labels of the controls stay in English. The choice applies to all plugin instances. |
+| Cloud button | Checks for a new version on GitHub. A pink dot on the button = a new version is available. Click the button to see the version and download the zip file. |
 | 100% / 125% | Scale of the plugin window. |
 | Bottom-right corner | Drag to change the window size. Width and height are independent. The layout adapts. |
 
 Factory presets: Init, Drop A Wall, Djent Tight, Doom Fog, Wide Rhythm, Left Lean, Lofi Intro, Radio Break, Master Safe.
+
+**Bottom bar:** hint text (left), LATENCY (the latency that the plugin reports to the DAW, in samples; green 0 = no latency), plugin version (right).
+
+### Updates
+
+- The plugin checks GitHub for a new version one time each day when you open the plugin window. You can turn this off in the update window.
+- The plugin sends only one request to `api.github.com`. It does not send any user data.
+- **Download** saves the zip file to the Downloads folder and opens the folder.
+- The DAW locks the plugin file while the DAW is open. Thus: close the DAW, extract `Post-Grape.vst3` and copy it to `C:\Program Files\Common Files\VST3\`.
 
 ## 6. Install
 
@@ -208,7 +240,7 @@ The build copies the plugin to `bin\Post-Grape.vst3` and runs the DSP tests (`bu
 ## 2. Цепочка сигнала
 
 ```
-IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter → OUT
+IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter → Auto-Gain → OUT
 ```
 
 ## 3. Общие элементы управления
@@ -219,6 +251,7 @@ IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan �
 | Ручка: тянуть вверх или вниз | Изменяет значение. |
 | Ручка: зажать Shift, кликнуть и тянуть | Изменяет значение в 5 раз медленнее (точная настройка). |
 | Ручка: двойной клик | Устанавливает значение по умолчанию. |
+| Строка подсказок (внизу окна) | Наведите курсор на модуль: строка показывает, что делает модуль. Наведите курсор на ручку, переключатель или кнопку: строка показывает, что делает этот элемент. |
 
 DAW может автоматизировать все ручки и все переключатели.
 
@@ -340,6 +373,27 @@ Mono-Maker убирает сигнал Side ниже частоты кроссо
 | Дисплей | — | Серая область: входной сигнал. Розовая область: выходной сигнал. Тёмная линия: снижение усиления (вверху = 0 дБ). Пунктирные линии: потолок. |
 | Индикаторы IN / GR / OUT | — | Входной уровень (левый, правый), снижение усиления, выходной уровень (левый, правый). |
 
+### 4.8 Auto-Gain
+
+**Функция.** Auto-Gain — последний модуль. Он измеряет громкость на входе плагина (до всех модулей) и на выходе плагина.
+Модуль делает громкость выхода равной громкости входа.
+Используйте его для честного сравнения A/B: когда вы включаете и выключаете модули, громкость не меняется. Поэтому вы слышите изменение тембра, а не изменение уровня.
+Задержки нет. По умолчанию модуль выключен.
+
+| Элемент | Диапазон | Функция |
+|---------|----------|---------|
+| SPEED | 0.3 – 10 с | Время, за которое усиление догоняет изменение громкости. Долго = плавное усиление без «дыхания». Быстро = быстрая реакция, но усиление может следовать за динамикой риффа. |
+| RANGE | 0 – 24 дБ | Максимальная коррекция усиления (вверх и вниз). 0 дБ = коррекции нет. |
+| TRIM | −12 … +12 дБ | Сдвиг после выравнивания. 0 дБ = равная громкость. +2 дБ = выход на 2 дБ громче входа. |
+| LUFS / RMS | — | Способ измерения громкости. LUFS: K-взвешивание, как слышит ухо (рекомендуется). RMS: чистая энергия сигнала, низ весит больше. |
+| HOLD | OFF / ON | Замораживает текущее усиление. Сыграйте рифф, подождите, пока усиление успокоится, и нажмите HOLD. Тогда слышно настоящее изменение уровня от ручек. |
+| Индикатор усиления | — | Усиление, которое модуль применяет сейчас. Вверх = подъём, вниз = срез. Под значением: громкость входа и выхода. |
+
+Примечания:
+- В тишине (вход ниже −60 дБ) усиление не меняется.
+- Подъём никогда не выводит пики выше потолка лимитера (или выше 0 dBFS, если лимитер выключен).
+- При включённом Auto-Gain ручка GAIN лимитера не меняет громкость. Это правильно: вы слышите только изменение плотности.
+
 ## 5. Верхняя панель
 
 | Элемент | Функция |
@@ -350,11 +404,21 @@ Mono-Maker убирает сигнал Side ниже частоты кроссо
 | Кнопка переименования | Даёт пользовательскому пресету новое имя. Заводской пресет переименовать нельзя. |
 | Кнопка удаления | Удаляет пользовательский пресет после подтверждения. Файл попадает в Корзину. Заводской пресет удалить нельзя. |
 | Кнопка папки | Открывает папку пользовательских пресетов: `Documents\desNotto\Post-Grape\Presets`. |
-| LATENCY | Показывает задержку, которую плагин сообщает DAW (в сэмплах). Зелёный 0 = задержки нет. |
+| Флаги (Россия / США) | Язык подсказок в строке подсказок. По умолчанию русский. Надписи на элементах остаются на английском. Выбор действует для всех экземпляров плагина. |
+| Кнопка-облако | Проверяет новую версию на GitHub. Розовая точка на кнопке = есть новая версия. Нажмите кнопку, чтобы увидеть версию и скачать zip-файл. |
 | 100% / 125% | Масштаб окна плагина. |
 | Правый нижний угол | Тяните, чтобы изменить размер окна. Ширина и высота меняются независимо. Раскладка подстраивается. |
 
 Заводские пресеты: Init, Drop A Wall, Djent Tight, Doom Fog, Wide Rhythm, Left Lean, Lofi Intro, Radio Break, Master Safe.
+
+**Нижняя строка:** текст подсказки (слева), LATENCY (задержка, которую плагин сообщает DAW, в сэмплах; зелёный 0 = задержки нет), версия плагина (справа).
+
+### Обновления
+
+- Плагин проверяет новую версию на GitHub один раз в день, когда вы открываете окно плагина. Это можно выключить в окне обновления.
+- Плагин отправляет только один запрос на `api.github.com`. Он не отправляет никаких данных о пользователе.
+- **Download** сохраняет zip-файл в папку «Загрузки» и открывает эту папку.
+- Пока DAW открыта, она блокирует файл плагина. Поэтому: закройте DAW, распакуйте `Post-Grape.vst3` и скопируйте его в `C:\Program Files\Common Files\VST3\`.
 
 ## 6. Установка
 

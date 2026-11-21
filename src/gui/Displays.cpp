@@ -380,7 +380,7 @@ void LimiterScope::paint (juce::Graphics& g)
     // Legend chips
     const float fh = 10.0f * z, ch = 19.0f * z;
     {
-        const juce::String legend = juce::String::fromUTF8 ("INPUT \xe2\x96\xac   OUTPUT \xe2\x96\xac   GAIN REDUCTION \xe2\x96\xac");
+        const juce::String legend = juce::String::fromUTF8 ("IN \xe2\x96\xac   OUT \xe2\x96\xac   GR \xe2\x96\xac");
         const float w = textWidth (font (fh, Weight::ExtraBold), legend) + 18.0f * z;
         auto r = juce::Rectangle<float> (10.0f * z, 8.0f * z, w, ch);
         g.setColour (juce::Colour (0xd9fff8fc));
@@ -397,12 +397,12 @@ void LimiterScope::paint (juce::Graphics& g)
             x += pw;
         };
         const auto bar = juce::String::fromUTF8 ("\xe2\x96\xac");
-        part ("INPUT ", col::plum); part (bar, juce::Colour (0xffb39ab8));
-        part ("   OUTPUT ", col::plum); part (bar, juce::Colour (0xffe06fb6));
-        part ("   GAIN REDUCTION ", col::plum); part (bar, col::plum);
+        part ("IN ", col::plum); part (bar, juce::Colour (0xffb39ab8));
+        part ("   OUT ", col::plum); part (bar, juce::Colour (0xffe06fb6));
+        part ("   GR ", col::plum); part (bar, col::plum);
     }
     {
-        const auto t = "CEILING " + juce::String (ceilingDb, 1) + " dBTP  " + juce::String::fromUTF8 ("\xc2\xb7")
+        const auto t = juce::String (ceilingDb, 1) + " dBTP  " + juce::String::fromUTF8 ("\xc2\xb7")
                      + "  GR " + (lastGrDb >= 0.05f ? "-" + juce::String (lastGrDb, 1) : juce::String ("0.0")) + " dB";
         const float w = textWidth (font (fh, Weight::ExtraBold), t) + 18.0f * z;
         drawChip (g, juce::Rectangle<float> (W - w - 10.0f * z, 8.0f * z, w, ch), t, fh);

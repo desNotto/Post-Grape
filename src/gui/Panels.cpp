@@ -13,13 +13,21 @@ float ballistic (float shown, float target, float fall = 0.82f) { return target 
 } // namespace
 
 // ================================================================ ModulePanel
-ModulePanel::ModulePanel (juce::AudioProcessorValueTreeState& state, const juce::String& t, const juce::String& tg,
-                          const juce::String& powerParam, bool leaf)
-    : apvts (state), title (t), tag (tg), leafDeco (leaf)
+ModulePanel::ModulePanel (juce::AudioProcessorValueTreeState& state, const juce::String& k, const juce::String& t,
+                          const juce::String& tg, const juce::String& powerParam, bool leaf)
+    : apvts (state), key (k), title (t), tag (tg), leafDeco (leaf)
 {
     addAndMakeVisible (power);
+    setHint (power, "power", "POWER");
     powerAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (apvts, powerParam, power);
     power.setTooltip (t + " on / off");
+}
+
+bool ModulePanel::getHint (juce::Point<int>, juce::String& k, juce::String& label) const
+{
+    k = key;
+    label = title.toUpperCase();
+    return true;
 }
 
 void ModulePanel::addBody (juce::Component& c)
@@ -120,7 +128,7 @@ void ModulePanel::paint (juce::Graphics& g)
 
 // ================================================================ EQ
 EqPanel::EqPanel (juce::AudioProcessorValueTreeState& s, std::function<double()> sampleRate)
-    : ModulePanel (s, "Bus EQ", juce::String::fromUTF8 ("TPT SVF \xc2\xb7 64-BIT \xc2\xb7 MIN-PHASE"), "eq_on", true),
+    : ModulePanel (s, "eq", "Bus EQ", juce::String::fromUTF8 ("TPT SVF \xc2\xb7 64-BIT \xc2\xb7 MIN-PHASE"), "eq_on", true),
       display (s, std::move (sampleRate)),
       freq (s, params::bandId (0, "freq"), "FREQ"), gain (s, params::bandId (0, "gain"), "GAIN"), q (s, params::bandId (0, "q"), "Q"),
       hp (s, "eq_hp", "HPF"), lp (s, "eq_lp", "LPF"), out (s, "eq_out", "OUTPUT")
@@ -131,6 +139,11 @@ EqPanel::EqPanel (juce::AudioProcessorValueTreeState& s, std::function<double()>
         addBody (*c);
 
     slope.bind (s, "eq_hp_slope");
+    bandSel.setHints ({ "band", "band", "band", "band" }, "BAND");
+    target.setHints ({ "tgt0", "tgt1", "tgt2" });
+    type.setHints ({ "type0", "type1", "type2", "type3" });
+    slope.setHints ({ "slope0", "slope1" }, "HPF");
+    setHint (display, "eqgraph", "EQ GRAPH");
     bandSel.onChange = [this] (int b) { selectBand (b); };
     display.onSelectBand = [this] (int b) { selectBand (b); };
     selectBand (0);
@@ -191,7 +204,7 @@ void EqPanel::layoutBody (juce::Rectangle<int> b)
 
 // ================================================================ Compressor
 CompPanel::CompPanel (juce::AudioProcessorValueTreeState& s, std::atomic<float>& grDb)
-    : ModulePanel (s, "Bus Compressor", "LOW BAND ONLY", "comp_on"),
+    : ModulePanel (s, "comp", "Bus Compressor", "LOW BAND ONLY", "comp_on"),
       split (s, "comp_split", "SPLIT", true), thresh (s, "comp_thresh", "THRESH", true), ratio (s, "comp_ratio", "RATIO"),
       makeup (s, "comp_makeup", "MAKEUP"), attack (s, "comp_attack", "ATTACK"), release (s, "comp_release", "RELEASE"),
       sc (s, "comp_sc", "SC HPF"), link (s, "comp_link", "LINK"), grSource (grDb)
@@ -199,6 +212,7 @@ CompPanel::CompPanel (juce::AudioProcessorValueTreeState& s, std::atomic<float>&
     for (auto* k : { &split, &thresh, &ratio, &makeup, &attack, &release, &sc, &link })
         addBody (*k);
     addBody (gr);
+    setHint (gr, "compgr", "GR");
 }
 
 void CompPanel::refresh()
@@ -225,12 +239,13 @@ void CompPanel::layoutBody (juce::Rectangle<int> b)
 
 // ================================================================ Wider
 WiderPanel::WiderPanel (juce::AudioProcessorValueTreeState& s, std::atomic<float>& corr)
-    : ModulePanel (s, "Wider", "", "wide_on"),
+    : ModulePanel (s, "wide", "Wider", "", "wide_on"),
       width (s, "wide_width", "WIDTH", true), air (s, "wide_air", "SIDE AIR"), cut (s, "wide_cut", "SIDE CUT"), corrSource (corr)
 {
     for (auto* k : { &width, &air, &cut })
         addBody (*k);
     addBody (corrMeter);
+    setHint (corrMeter, "corr", "CORR");
 }
 
 void WiderPanel::refresh()
@@ -261,7 +276,7 @@ void WiderPanel::paintOverChildren (juce::Graphics& g)
 
 // ================================================================ Mono-Maker
 MonoPanel::MonoPanel (juce::AudioProcessorValueTreeState& s)
-    : ModulePanel (s, "Mono-Maker", "", "mono_on"),
+    : ModulePanel (s, "mono", "Mono-Maker", "", "mono_on"),
       freq (s, "mono_freq", "FREQ", true), width (s, "mono_width", "LOW WIDTH")
 {
     addBody (freq);
@@ -287,7 +302,7 @@ void MonoPanel::layoutBody (juce::Rectangle<int> b)
 
 // ================================================================ True Pan
 PanPanel::PanPanel (juce::AudioProcessorValueTreeState& s)
-    : ModulePanel (s, "True Stereo Pan", "", "pan_on"),
+    : ModulePanel (s, "pan", "True Stereo Pan", "", "pan_on"),
       pan (s, "pan_pan", "PAN"), spread (s, "pan_spread", "SPREAD")
 {
     addBody (display);
@@ -313,13 +328,14 @@ void PanPanel::layoutBody (juce::Rectangle<int> b)
 
 // ================================================================ Lofi
 LofiPanel::LofiPanel (juce::AudioProcessorValueTreeState& s)
-    : ModulePanel (s, "Lofi", "AUTOMATE ON / OFF", "lofi_on"),
+    : ModulePanel (s, "lofi", "Lofi", "AUTOMATE ON / OFF", "lofi_on"),
       mix (s, "lofi_mix", "MIX"), tone (s, "lofi_tone", "TONE"), bits (s, "lofi_bits", "BITS"), rate (s, "lofi_rate", "RATE"),
       noise (s, "lofi_noise", "NOISE"), wobble (s, "lofi_wobble", "WOBBLE"), drive (s, "lofi_drive", "DRIVE")
 {
     addBody (sw);
     swAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (s, "lofi_active", sw);
     sw.onStateChange = [this] { repaint(); };
+    setHint (sw, "lofisw", "LOFI");
     for (auto* k : { &mix, &tone, &bits, &rate, &noise, &wobble, &drive })
         addBody (*k);
 }
@@ -358,7 +374,7 @@ void LofiPanel::paintOverChildren (juce::Graphics& g)
 
 // ================================================================ Limiter
 LimiterPanel::LimiterPanel (juce::AudioProcessorValueTreeState& s, pg::Limiter& limiter)
-    : ModulePanel (s, "Bus Limiter", juce::String::fromUTF8 ("SOFT CLIP \xe2\x86\x92 TRUE-PEAK BRICKWALL \xc2\xb7 OVERSAMPLED"), "lim_on"),
+    : ModulePanel (s, "lim", "Bus Limiter", juce::String::fromUTF8 ("SOFT CLIP \xe2\x86\x92 TRUE-PEAK BRICKWALL \xc2\xb7 OVERSAMPLED"), "lim_on"),
       lim (limiter), scope (limiter.scope),
       gain (s, "lim_gain", "GAIN", true), clip (s, "lim_clip", "SOFT CLIP", true), ceiling (s, "lim_ceiling", "CEILING", true),
       release (s, "lim_release", "RELEASE"), adapt (s, "lim_adapt", "ADAPT"), output (s, "lim_out", "OUTPUT")
@@ -372,6 +388,11 @@ LimiterPanel::LimiterPanel (juce::AudioProcessorValueTreeState& s, pg::Limiter& 
         addBody (*m);
     look.bind (s, "lim_look");
     os.bind (s, "lim_os");
+    look.setHints ({ "look0", "look1", "look2" }, "LOOKAHEAD");
+    os.setHints ({ "os0", "os1", "os2" }, "OVERSAMPLING");
+    setHint (scope, "limscope", "SCOPE");
+    for (auto* m : { &inL, &inR, &grM, &outL, &outR })
+        setHint (*m, "limmeters", "IN / GR / OUT");
 }
 
 void LimiterPanel::refresh()
@@ -450,5 +471,83 @@ void LimiterPanel::paintOverChildren (juce::Graphics& g)
     g.drawText ("IN", juce::Rectangle<int> (inL.getX(), ly, inR.getRight() - inL.getX(), lh), juce::Justification::centred, false);
     g.drawText ("GR", juce::Rectangle<int> (grM.getX() - 6, ly, grM.getWidth() + 12, lh), juce::Justification::centred, false);
     g.drawText ("OUT", juce::Rectangle<int> (outL.getX() - 4, ly, outR.getRight() - outL.getX() + 8, lh), juce::Justification::centred, false);
+}
+// ================================================================ Auto-Gain
+AutoGainPanel::AutoGainPanel (juce::AudioProcessorValueTreeState& s, pg::AutoGain& autoGain)
+    : ModulePanel (s, "ag", "Auto-Gain", "MATCH INPUT", "ag_on"), ag (autoGain),
+      speed (s, "ag_speed", "SPEED"), range (s, "ag_range", "RANGE"), trim (s, "ag_trim", "TRIM")
+{
+    addBody (meter);
+    for (auto* k : { &speed, &range, &trim })
+        addBody (*k);
+    addBody (detect);
+    addBody (hold);
+    detect.bind (s, "ag_detect");
+    detect.setHints ({ "lufs", "rms" });
+    holdAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment> (s, "ag_hold", hold);
+    setHint (hold, "hold", "HOLD");
+    setHint (meter, "agmeter", "GAIN");
+}
+
+void AutoGainPanel::refresh()
+{
+    ModulePanel::refresh();
+    const bool on = apvts.getRawParameterValue ("ag_on")->load() > 0.5f;
+    const float g = on ? ag.gainDb.load() : 0.0f;
+    const float in = ag.inLevel.load(), out = ag.outLevel.load();
+    meter.setValue (g, juce::jmax (6.0f, apvts.getRawParameterValue ("ag_range")->load()));
+    if (std::abs (g - shownGain) > 0.05f || std::abs (in - inLvl) > 0.05f || std::abs (out - outLvl) > 0.05f)
+    {
+        shownGain = g;
+        inLvl = in;
+        outLvl = out;
+        repaint (readArea);
+    }
+}
+
+void AutoGainPanel::layoutBody (juce::Rectangle<int> b)
+{
+    const float d = 42.0f * z, gap = 8.0f * z;
+    detect.setZ (z);
+    hold.setZ (z);
+    const int segH = detect.preferredHeight();
+    auto bottom = b.removeFromBottom (segH);
+    b.removeFromBottom (juce::roundToInt (6.0f * z));
+    const int dw = detect.preferredWidth(), hw = hold.preferredWidth(), g6 = juce::roundToInt (6.0f * z);
+    int x = bottom.getCentreX() - (dw + g6 + hw) / 2;
+    detect.setBounds (x, bottom.getY(), dw, segH);
+    hold.setBounds (x + dw + g6, bottom.getY(), hw, segH);
+
+    const auto rs = rowSize ({ &speed, &range, &trim }, d, z, gap);
+    layoutRow ({ &speed, &range, &trim }, b, b.getBottom() - rs.y, d, gap);
+    b.removeFromBottom (rs.y + juce::roundToInt (4.0f * z));
+
+    const int mw = juce::roundToInt (18.0f * z);
+    meter.setBounds (b.getX() + juce::roundToInt (4.0f * z), b.getY(), mw, juce::jmax (10, b.getHeight()));
+    readArea = b.withTrimmedLeft (mw + juce::roundToInt (14.0f * z));
+}
+
+void AutoGainPanel::paintOverChildren (juce::Graphics& g)
+{
+    const float a = meter.getAlpha();
+    auto r = readArea.toFloat();
+    const bool on = apvts.getRawParameterValue ("ag_on")->load() > 0.5f;
+    const bool lufs = juce::roundToInt (apvts.getRawParameterValue ("ag_detect")->load()) == 0;
+    const juce::String minus = juce::String::fromUTF8 ("\xe2\x88\x92");
+    auto fmt = [&] (float v) { return (v < -0.05f ? minus : juce::String()) + juce::String (std::abs (v), 1); };
+
+    const float bigH = 20.0f * z, smallH = 10.5f * z;
+    const float total = bigH * 1.3f + smallH * 1.5f;
+    const float y = r.getCentreY() - total * 0.5f;
+    g.setColour (col::deep.withAlpha (a));
+    g.setFont (font (bigH, Weight::Black));
+    const juce::String gainText = on ? ((shownGain > 0.05f ? "+" : "") + fmt (shownGain) + " dB") : juce::String ("OFF");
+    g.drawText (gainText, juce::Rectangle<float> (r.getX(), y, r.getWidth(), bigH * 1.3f), juce::Justification::centredLeft, false);
+    g.setColour (col::muted.withAlpha (a));
+    g.setFont (font (smallH, Weight::Bold));
+    const juce::String unit = lufs ? " LUFS" : " dB";
+    const juce::String io = (inLvl < -90.0f || ! on) ? juce::String::fromUTF8 ("IN \xe2\x80\x94 \xc2\xb7 OUT \xe2\x80\x94")
+                                                    : "IN " + fmt (inLvl) + juce::String::fromUTF8 (" \xc2\xb7 OUT ") + fmt (outLvl) + unit;
+    g.drawText (io, juce::Rectangle<float> (r.getX(), y + bigH * 1.3f, r.getWidth(), smallH * 1.5f), juce::Justification::centredLeft, false);
 }
 } // namespace pg::ui

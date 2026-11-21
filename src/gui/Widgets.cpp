@@ -28,16 +28,17 @@ Knob::Knob (juce::AudioProcessorValueTreeState& state, const juce::String& param
     bind (paramId);
 }
 
-void Knob::bind (const juce::String& paramId)
+void Knob::bind (const juce::String& id)
 {
     attachment.reset();
-    param = apvts.getParameter (paramId);
+    paramId = id;
+    param = apvts.getParameter (id);
     jassert (param != nullptr);
     if (param == nullptr)
         return;
     const auto range = param->getNormalisableRange();
     slider.getProperties().set ("bipolar", range.start < 0.0f && range.end > 0.0f);
-    attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, paramId, slider);
+    attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment> (apvts, id, slider);
     slider.setDoubleClickReturnValue (true, param->convertFrom0to1 (param->getDefaultValue()));
     slider.setTooltip (param->getName (64));
     repaint();
@@ -78,6 +79,13 @@ void Knob::paint (juce::Graphics& g)
     g.setFont (font (10.5f * z, Weight::Bold));
     const auto text = param != nullptr ? param->getCurrentValueAsText() : juce::String();
     g.drawText (text, juce::Rectangle<float> (0, d + 16.0f * z, r.getWidth(), 14.0f * z), juce::Justification::centred, false);
+}
+
+bool Knob::getHint (juce::Point<int>, juce::String& key, juce::String& lbl) const
+{
+    key = hintKeyForParam (paramId);
+    lbl = label;
+    return true;
 }
 
 void Knob::paintOverChildren (juce::Graphics& g)
@@ -289,22 +297,35 @@ void Segmented::paint (juce::Graphics& g)
     g.drawRoundedRectangle (r, rad, 1.0f);
 }
 
-void Segmented::mouseDown (const juce::MouseEvent& e)
+int Segmented::itemAt (int x) const
 {
     const auto widths = itemWidths();
     float total = 0.0f;
     for (float w : widths) total += w;
     const float scale = (float) getWidth() / juce::jmax (1.0f, total);
-    float x = 0.0f;
+    float edge = 0.0f;
     for (int i = 0; i < items.size(); ++i)
     {
-        x += widths[(size_t) i] * scale;
-        if ((float) e.x < x)
-        {
-            setSelected (i, true);
-            return;
-        }
+        edge += widths[(size_t) i] * scale;
+        if ((float) x < edge)
+            return i;
     }
+    return items.size() - 1;
+}
+
+void Segmented::mouseDown (const juce::MouseEvent& e)
+{
+    setSelected (itemAt (e.x), true);
+}
+
+bool Segmented::getHint (juce::Point<int> p, juce::String& key, juce::String& label) const
+{
+    if (hintKeys.isEmpty())
+        return false;
+    const int i = itemAt (p.x);
+    key = hintKeys[juce::jmin (i, hintKeys.size() - 1)];
+    label = (hintPrefix.isNotEmpty() ? hintPrefix + " " : juce::String()) + items[i];
+    return true;
 }
 
 // ---------------------------------------------------------------- IconButton
@@ -378,6 +399,22 @@ void IconButton::paintButton (juce::Graphics& g, bool over, bool down)
             g.strokePath (t, juce::PathStrokeType (lw, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
             break;
         }
+        case Icon::Cloud:
+        {
+            p.startNewSubPath (P (5.5f, 15.5f));
+            p.lineTo (P (14.5f, 15.5f));
+            p.cubicTo (P (19.0f, 15.5f), P (19.0f, 8.6f), P (14.9f, 8.5f));
+            p.cubicTo (P (14.0f, 3.5f), P (6.5f, 3.5f), P (5.3f, 8.0f));
+            p.cubicTo (P (1.2f, 8.5f), P (1.5f, 15.5f), P (5.5f, 15.5f));
+            p.closeSubPath();
+            g.setColour (fillC); g.fillPath (p);
+            g.setColour (ink); g.strokePath (p, juce::PathStrokeType (1.5f * s, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            juce::Path a;
+            a.startNewSubPath (P (10, 8.5f)); a.lineTo (P (10, 13.5f));
+            a.startNewSubPath (P (7.8f, 11.4f)); a.lineTo (P (10, 13.6f)); a.lineTo (P (12.2f, 11.4f));
+            g.strokePath (a, juce::PathStrokeType (1.6f * s, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+            break;
+        }
         case Icon::Folder:
         {
             p.startNewSubPath (P (3, 5)); p.lineTo (P (8, 5)); p.lineTo (P (10, 7)); p.lineTo (P (17, 7)); p.lineTo (P (17, 16)); p.lineTo (P (3, 16)); p.closeSubPath();
@@ -385,6 +422,16 @@ void IconButton::paintButton (juce::Graphics& g, bool over, bool down)
             g.setColour (ink); g.strokePath (p, juce::PathStrokeType (lw, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
             break;
         }
+    }
+
+    if (badge)
+    {
+        const float d = r.getWidth() * 0.3f;
+        auto dot = juce::Rectangle<float> (d, d).withCentre ({ r.getRight() - d * 0.25f, r.getY() + d * 0.25f });
+        g.setColour (juce::Colour (0xfffbf2f8));
+        g.fillEllipse (dot.expanded (2.0f));
+        g.setColour (col::hot);
+        g.fillEllipse (dot);
     }
 }
 
@@ -464,5 +511,161 @@ void CorrMeter::paint (juce::Graphics& g)
     g.fillRoundedRectangle (ind.expanded (1.5f), 3.0f);
     g.setColour (c);
     g.fillRoundedRectangle (ind, 2.5f);
+}
+} // namespace pg::ui
+
+namespace pg::ui
+{
+// ---------------------------------------------------------------- FlagSwitch
+namespace
+{
+void drawFlag (juce::Graphics& g, juce::Rectangle<float> r, bool russia)
+{
+    juce::Path clip;
+    clip.addRoundedRectangle (r, r.getHeight() * 0.18f);
+    g.saveState();
+    g.reduceClipRegion (clip);
+    if (russia)
+    {
+        const float h = r.getHeight() / 3.0f;
+        g.setColour (juce::Colours::white); g.fillRect (r.withHeight (h));
+        g.setColour (juce::Colour (0xff0039a6)); g.fillRect (r.withY (r.getY() + h).withHeight (h));
+        g.setColour (juce::Colour (0xffd52b1e)); g.fillRect (r.withY (r.getY() + 2.0f * h).withHeight (h + 0.5f));
+    }
+    else
+    {
+        const float sh = r.getHeight() / 13.0f;
+        g.setColour (juce::Colour (0xffb22234)); g.fillRect (r);
+        g.setColour (juce::Colours::white);
+        for (int i = 1; i < 13; i += 2)
+            g.fillRect (r.getX(), r.getY() + (float) i * sh, r.getWidth(), sh);
+        auto canton = juce::Rectangle<float> (r.getX(), r.getY(), r.getWidth() * 0.4f, sh * 7.0f);
+        g.setColour (juce::Colour (0xff3c3b6e)); g.fillRect (canton);
+        g.setColour (juce::Colours::white);
+        const float dr = juce::jmax (0.6f, canton.getHeight() * 0.07f);
+        for (int row = 0; row < 4; ++row)
+            for (int c = 0; c < 3; ++c)
+            {
+                const float x = canton.getX() + canton.getWidth() * (0.2f + 0.3f * (float) c + (row % 2 ? 0.15f : 0.0f));
+                const float y = canton.getY() + canton.getHeight() * (0.15f + 0.23f * (float) row);
+                if (x < canton.getRight() - dr)
+                    g.fillEllipse (x - dr, y - dr, dr * 2.0f, dr * 2.0f);
+            }
+    }
+    g.restoreState();
+    g.setColour (juce::Colours::black.withAlpha (0.15f));
+    g.drawRoundedRectangle (r, r.getHeight() * 0.18f, 0.8f);
+}
+} // namespace
+
+void FlagSwitch::paint (juce::Graphics& g)
+{
+    auto r = getLocalBounds().toFloat().reduced (0.5f);
+    const float rad = juce::jmin (14.0f * z, r.getHeight() * 0.5f);
+    g.setColour (juce::Colour (0xfff3e3f0));
+    g.fillRoundedRectangle (r, rad);
+    juce::Path clip;
+    clip.addRoundedRectangle (r, rad);
+    for (int i = 0; i < 2; ++i)
+    {
+        auto cell = r.withWidth (r.getWidth() * 0.5f).withX (r.getX() + r.getWidth() * 0.5f * (float) i);
+        const bool on = (i == 0) == russian;
+        if (on)
+        {
+            g.saveState();
+            g.reduceClipRegion (clip);
+            g.setGradientFill (juce::ColourGradient (juce::Colour (0xfff3a6d6), 0, r.getY(), juce::Colour (0xffd873b4), 0, r.getBottom(), false));
+            g.fillRect (cell);
+            g.restoreState();
+        }
+        const float fh = cell.getHeight() * 0.56f, fw = fh * 1.5f;
+        g.setOpacity (on ? 1.0f : 0.55f);
+        drawFlag (g, juce::Rectangle<float> (fw, fh).withCentre (cell.getCentre()), i == 0);
+        g.setOpacity (1.0f);
+    }
+    g.setColour (col::line2);
+    g.drawRoundedRectangle (r, rad, 1.0f);
+}
+
+void FlagSwitch::mouseDown (const juce::MouseEvent& e)
+{
+    const bool ru = e.x < getWidth() / 2;
+    if (ru != russian)
+    {
+        russian = ru;
+        repaint();
+        if (onChange)
+            onChange (russian);
+    }
+}
+
+bool FlagSwitch::getHint (juce::Point<int> p, juce::String& key, juce::String& label) const
+{
+    const bool ru = p.x < getWidth() / 2;
+    key = ru ? "ru" : "en";
+    label = ru ? "RU" : "EN";
+    return true;
+}
+
+// ---------------------------------------------------------------- PillToggle
+int PillToggle::preferredWidth() const
+{
+    return juce::roundToInt (textWidth (font (11.0f * z, Weight::ExtraBold), getButtonText()) * 1.06f + 22.0f * z);
+}
+
+void PillToggle::paintButton (juce::Graphics& g, bool over, bool)
+{
+    auto r = getLocalBounds().toFloat().reduced (0.5f);
+    const float rad = r.getHeight() * 0.5f;
+    const bool on = getToggleState();
+    if (on)
+        g.setGradientFill (juce::ColourGradient (juce::Colour (0xfff3a6d6), 0, r.getY(), juce::Colour (0xffd873b4), 0, r.getBottom(), false));
+    else
+        g.setGradientFill (juce::ColourGradient (juce::Colour (0xfffff9fd), 0, r.getY(), juce::Colour (0xfff1dfee), 0, r.getBottom(), false));
+    g.fillRoundedRectangle (r, rad);
+    if (over)
+    {
+        g.setColour (juce::Colours::white.withAlpha (0.2f));
+        g.fillRoundedRectangle (r, rad);
+    }
+    g.setColour (on ? juce::Colour (0xffcc6aa9) : col::line2);
+    g.drawRoundedRectangle (r, rad, 1.0f);
+    g.setColour (on ? juce::Colours::white : col::muted);
+    g.setFont (font (11.0f * z, Weight::ExtraBold).withExtraKerningFactor (0.05f));
+    g.drawText (getButtonText(), r, juce::Justification::centred, false);
+}
+
+// ---------------------------------------------------------------- GainMeter
+void GainMeter::setValue (float db, float rangeDb)
+{
+    rangeDb = juce::jmax (1.0f, rangeDb);
+    if (std::abs (db - value) > 0.01f || rangeDb != range)
+    {
+        value = db;
+        range = rangeDb;
+        repaint();
+    }
+}
+
+void GainMeter::paint (juce::Graphics& g)
+{
+    auto r = getLocalBounds().toFloat().reduced (0.5f);
+    const float rad = r.getWidth() * 0.5f;
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xfff3e3ef), 0, r.getY(), juce::Colour (0xffead6e6), 0, r.getBottom(), false));
+    g.fillRoundedRectangle (r, rad);
+    g.setColour (col::line2);
+    g.drawRoundedRectangle (r, rad, 1.0f);
+    const float mid = r.getCentreY();
+    g.fillRect (r.getX(), mid - 0.75f, r.getWidth(), 1.5f);
+
+    const float h = juce::jlimit (0.0f, 1.0f, std::abs (value) / range) * (r.getHeight() * 0.5f - 3.0f);
+    if (h > 0.5f)
+    {
+        auto bar = juce::Rectangle<float> (r.getX() + 3.0f, value >= 0.0f ? mid - h : mid, r.getWidth() - 6.0f, h);
+        g.setColour (col::pink2.withAlpha (0.4f));
+        g.fillRoundedRectangle (bar.expanded (1.5f), 4.0f);
+        g.setGradientFill (juce::ColourGradient (juce::Colour (0xfff3a6d6), 0, bar.getY(), juce::Colour (0xffd873b4), 0, bar.getBottom(), false));
+        g.fillRoundedRectangle (bar, 3.5f);
+    }
 }
 } // namespace pg::ui

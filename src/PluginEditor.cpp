@@ -4,9 +4,10 @@ using namespace pg::ui;
 
 namespace
 {
-constexpr int kBaseW = 1200, kBaseH = 820; // design size (100 %)
-constexpr int kMinW = 980, kMinH = 700;
+constexpr int kBaseW = 1200, kBaseH = 856; // design size (100 %)
+constexpr int kMinW = 980, kMinH = 730;
 constexpr int kMaxW = 2600, kMaxH = 1800;
+constexpr juce::int64 kDayMs = 24 * 60 * 60 * 1000;
 } // namespace
 
 PostGrapeEditor::PostGrapeEditor (PostGrapeProcessor& p)
@@ -17,18 +18,31 @@ PostGrapeEditor::PostGrapeEditor (PostGrapeProcessor& p)
       monoPanel (p.apvts),
       panPanel (p.apvts),
       lofiPanel (p.apvts),
-      limPanel (p.apvts, p.engine.lim)
+      limPanel (p.apvts, p.engine.lim),
+      agPanel (p.apvts, p.engine.ag)
 {
     setLookAndFeel (&lnf);
-    tooltips.setLookAndFeel (&lnf);
     addAndMakeVisible (content);
 
     for (juce::Component* c : { (juce::Component*) &prevBtn, (juce::Component*) &nextBtn, (juce::Component*) &saveBtn,
                                 (juce::Component*) &renameBtn, (juce::Component*) &deleteBtn, (juce::Component*) &folderBtn,
-                                (juce::Component*) &presetBox, (juce::Component*) &scaleSel, (juce::Component*) &eqPanel,
+                                (juce::Component*) &presetBox, (juce::Component*) &langSel, (juce::Component*) &updateBtn,
+                                (juce::Component*) &scaleSel, (juce::Component*) &hintBar, (juce::Component*) &eqPanel,
                                 (juce::Component*) &compPanel, (juce::Component*) &widerPanel, (juce::Component*) &monoPanel,
-                                (juce::Component*) &panPanel, (juce::Component*) &lofiPanel, (juce::Component*) &limPanel })
+                                (juce::Component*) &panPanel, (juce::Component*) &lofiPanel, (juce::Component*) &limPanel,
+                                (juce::Component*) &agPanel })
         content.addAndMakeVisible (c);
+
+    // Hints for the header controls.
+    setHint (prevBtn, "prev", "PREVIOUS");
+    setHint (nextBtn, "next", "NEXT");
+    setHint (saveBtn, "save", "SAVE");
+    setHint (renameBtn, "rename", "RENAME");
+    setHint (deleteBtn, "del", "DELETE");
+    setHint (folderBtn, "folder", "FOLDER");
+    setHint (updateBtn, "upd", "UPDATE");
+    setHint (presetBox, "pname", "PRESET");
+    scaleSel.setHints ({ "z100", "z125" }, "SCALE");
 
     prevBtn.onClick = [this] { proc.presets.loadPrevious(); };
     nextBtn.onClick = [this] { proc.presets.loadNext(); };
@@ -40,8 +54,25 @@ PostGrapeEditor::PostGrapeEditor (PostGrapeProcessor& p)
         dir.createDirectory();
         dir.startAsProcess();
     };
-    presetBox.setTooltip ("Click: preset list");
+    updateBtn.onClick = [this] { onUpdateButton(); };
     proc.presets.onChange = [this] { presetBox.repaint(); };
+
+    langSel.setRussian (settings->hintsRussian());
+    langSel.onChange = [this] (bool ru) {
+        settings->setHintsRussian (ru);
+        updateHint (nullptr);
+    };
+
+    autoCheckToggle.setToggleState (settings->autoCheckUpdates(), juce::dontSendNotification);
+    autoCheckToggle.setColour (juce::ToggleButton::textColourId, col::muted);
+    autoCheckToggle.setColour (juce::ToggleButton::tickColourId, col::hot);
+    autoCheckToggle.setColour (juce::ToggleButton::tickDisabledColourId, col::line2);
+    autoCheckToggle.onClick = [this] { settings->setAutoCheckUpdates (autoCheckToggle.getToggleState()); };
+    autoCheckToggle.setSize (420, 26);
+
+    // Hint bar: listen to the mouse over all controls.
+    content.addMouseListener (this, true);
+    updateHint (nullptr);
 
     scale = proc.uiScale;
     scaleSel.setSelected (scale > 1.1f ? 1 : 0, false);
@@ -56,13 +87,22 @@ PostGrapeEditor::PostGrapeEditor (PostGrapeProcessor& p)
     settingScale = false;
     setSize (juce::roundToInt ((float) w * scale), juce::roundToInt ((float) h * scale));
 
+    // Automatic update check: one time each day.
+    const auto now = juce::Time::currentTimeMillis();
+    if (settings->autoCheckUpdates() && now - settings->lastUpdateCheck() > kDayMs
+        && updates->status() == pg::UpdateChecker::Status::Idle)
+    {
+        settings->setLastUpdateCheck (now);
+        updates->startCheck();
+    }
+
     startTimerHz (30);
 }
 
 PostGrapeEditor::~PostGrapeEditor()
 {
+    content.removeMouseListener (this);
     proc.presets.onChange = nullptr;
-    tooltips.setLookAndFeel (nullptr);
     setLookAndFeel (nullptr);
 }
 
@@ -109,6 +149,11 @@ void PostGrapeEditor::layoutContent()
     auto area = content.getLocalBounds().withTrimmedLeft (pad).withTrimmedRight (pad).withTrimmedBottom (pad);
     auto header = area.removeFromTop (headerH);
 
+    // Hint bar at the bottom.
+    hintBar.z = z;
+    hintBar.setBounds (area.removeFromBottom (R (28.0f * z)));
+    area.removeFromBottom (R (10.0f * z));
+
     // Header: preset bar in the centre.
     const int bs = R (34.0f * z), bg = R (8.0f * z), boxW = R (300.0f * z);
     const int barW = bs * 6 + boxW + bg * 7;
@@ -122,11 +167,20 @@ void PostGrapeEditor::layoutContent()
         b->setBounds (x, by, bs, bs);
         x += bs + bg;
     }
+
+    // Header right: flags, update, scale (each sized to its content).
     scaleSel.setZ (z);
-    const int sw = scaleSel.preferredWidth(), sh = R (26.0f * z);
-    scaleSel.setBounds (header.getRight() - sw, header.getCentreY() - sh / 2, sw, sh);
-    const float chipW = textWidth (font (11.0f * z, Weight::ExtraBold), "LATENCY 000 smp") + 20.0f * z;
-    content.latencyChip = { (float) scaleSel.getX() - 10.0f * z - chipW, (float) header.getCentreY() - 13.0f * z, chipW, 26.0f * z };
+    langSel.setZ (z);
+    const int sh = R (26.0f * z);
+    int rx = header.getRight();
+    const int sw = scaleSel.preferredWidth();
+    rx -= sw;
+    scaleSel.setBounds (rx, header.getCentreY() - sh / 2, sw, sh);
+    rx -= bg + bs;
+    updateBtn.setBounds (rx, by, bs, bs);
+    const int lw = langSel.preferredWidth();
+    rx -= bg + lw;
+    langSel.setBounds (rx, header.getCentreY() - sh / 2, lw, sh);
 
     // Panels: rows 1.55 : 1 : 1.08
     const float avail = (float) (area.getHeight() - gap * 2);
@@ -153,13 +207,128 @@ void PostGrapeEditor::layoutContent()
 
     const auto r1 = split (row1, { 1.8f, 1.0f });
     const auto r2 = split (row2, { 1.0f, 1.0f, 1.0f, 1.3f });
+    const auto r3 = split (row3, { 3.3f, 1.0f });
     ModulePanel* p1[] = { &eqPanel, &compPanel };
     ModulePanel* p2[] = { &widerPanel, &monoPanel, &panPanel, &lofiPanel };
+    ModulePanel* p3[] = { &limPanel, &agPanel };
     for (int i = 0; i < 2; ++i) { p1[i]->setZ (z); p1[i]->setBounds (r1[(size_t) i]); }
     for (int i = 0; i < 4; ++i) { p2[i]->setZ (z); p2[i]->setBounds (r2[(size_t) i]); }
-    limPanel.setZ (z);
-    limPanel.setBounds (row3);
+    for (int i = 0; i < 2; ++i) { p3[i]->setZ (z); p3[i]->setBounds (r3[(size_t) i]); }
     content.repaint();
+}
+
+// ---------------------------------------------------------------- hints
+void PostGrapeEditor::mouseMove (const juce::MouseEvent& e) { updateHint (&e); }
+void PostGrapeEditor::mouseEnter (const juce::MouseEvent& e) { updateHint (&e); }
+void PostGrapeEditor::mouseDrag (const juce::MouseEvent&) {}
+
+void PostGrapeEditor::mouseExit (const juce::MouseEvent& e)
+{
+    const auto p = e.getEventRelativeTo (&content).position.toInt();
+    if (! content.getLocalBounds().contains (p))
+    {
+        mouseInside = false;
+        updateHint (nullptr);
+    }
+}
+
+void PostGrapeEditor::updateHint (const juce::MouseEvent* e)
+{
+    if (e != nullptr)
+    {
+        lastMouse = e->getEventRelativeTo (&content).position.toInt();
+        mouseInside = true;
+    }
+
+    juce::String key, label;
+    bool found = false;
+    if (mouseInside && content.getLocalBounds().contains (lastMouse))
+    {
+        for (auto* c = content.getComponentAt (lastMouse); c != nullptr && c != &content && ! found; c = c->getParentComponent())
+        {
+            if (auto* hs = dynamic_cast<HintSource*> (c))
+                found = hs->getHint (c->getLocalPoint (&content, lastMouse), key, label);
+            if (! found)
+                found = getFixedHint (*c, key, label);
+        }
+    }
+
+    const auto text = found ? hintText (key, lang()) : juce::String();
+    if (found && text.isNotEmpty())
+        hintBar.setHint (label, text);
+    else
+        hintBar.setHint ({}, idleHint (lang()));
+}
+
+void PostGrapeEditor::HintBar::setHint (const juce::String& l, const juce::String& t)
+{
+    if (l != label || t != text)
+    {
+        label = l;
+        text = t;
+        repaint();
+    }
+}
+
+juce::Rectangle<float> PostGrapeEditor::HintBar::latencyArea() const
+{
+    const auto f = font (11.0f * z, Weight::ExtraBold).withExtraKerningFactor (0.06f);
+    const float vw = textWidth (font (10.5f * z, Weight::ExtraBold), "v" + pg::UpdateChecker::currentVersion()) + 12.0f * z;
+    const float w = textWidth (f, "LATENCY 000 smp") + 20.0f * z;
+    const auto r = getLocalBounds().toFloat();
+    return { r.getRight() - vw - w - 6.0f * z, r.getY() + 3.0f * z, w, r.getHeight() - 6.0f * z };
+}
+
+void PostGrapeEditor::HintBar::paint (juce::Graphics& g)
+{
+    auto r = getLocalBounds().toFloat().reduced (0.5f);
+    const float rad = r.getHeight() * 0.5f;
+    g.setGradientFill (juce::ColourGradient (juce::Colour (0xfffdf6fb), 0, r.getY(), juce::Colour (0xfff3e3f0), 0, r.getBottom(), false));
+    g.fillRoundedRectangle (r, rad);
+    g.setColour (col::line2);
+    g.drawRoundedRectangle (r, rad, 1.0f);
+
+    drawImageW (g, Images::get().grapes, r.getX() + 8.0f * z, r.getCentreY() - 9.0f * z, 18.0f * z);
+
+    // Latency chip and version on the right.
+    const auto chip = latencyArea();
+    g.setColour (juce::Colour (0xfff3e3f0));
+    g.fillRoundedRectangle (chip, 9.0f * z);
+    g.setColour (col::line);
+    g.drawRoundedRectangle (chip.reduced (0.5f), 9.0f * z, 1.0f);
+    const auto f = font (11.0f * z, Weight::ExtraBold).withExtraKerningFactor (0.06f);
+    const juce::String a = "LATENCY ", b = juce::String (latency) + " smp";
+    const float wa = textWidth (f, a), wb = textWidth (f, b);
+    const float tx = chip.getCentreX() - (wa + wb) * 0.5f;
+    g.setFont (f);
+    g.setColour (col::muted);
+    g.drawText (a, juce::Rectangle<float> (tx, chip.getY(), wa + 2.0f, chip.getHeight()), juce::Justification::centredLeft, false);
+    g.setColour (latency == 0 ? juce::Colour (0xff4f9a45) : col::hot);
+    g.drawText (b, juce::Rectangle<float> (tx + wa, chip.getY(), wb + 2.0f, chip.getHeight()), juce::Justification::centredLeft, false);
+    g.setColour (col::muted);
+    g.setFont (font (10.5f * z, Weight::ExtraBold).withExtraKerningFactor (0.06f));
+    g.drawText ("v" + pg::UpdateChecker::currentVersion(), juce::Rectangle<float> (chip.getRight(), r.getY(), r.getRight() - chip.getRight(), r.getHeight()),
+                juce::Justification::centred, false);
+
+    // Hint text: label (bold, pink) — text.
+    float x = r.getX() + 32.0f * z;
+    const float right = chip.getX() - 8.0f * z;
+    if (label.isNotEmpty())
+    {
+        const auto lf = font (12.0f * z, Weight::Black).withExtraKerningFactor (0.06f);
+        const auto l = label + juce::String::fromUTF8 (" \xe2\x80\x94 ");
+        const float lw = textWidth (lf, l);
+        g.setFont (lf);
+        g.setColour (col::hot);
+        g.drawText (label, juce::Rectangle<float> (x, r.getY(), lw, r.getHeight()), juce::Justification::centredLeft, false);
+        g.setColour (col::deep);
+        g.drawText (juce::String::fromUTF8 ("\xe2\x80\x94"), juce::Rectangle<float> (x + textWidth (lf, label + " "), r.getY(), 20.0f * z, r.getHeight()),
+                    juce::Justification::centredLeft, false);
+        x += lw + 2.0f * z;
+    }
+    g.setColour (col::deep);
+    g.setFont (font (12.0f * z, Weight::Bold));
+    g.drawText (text, juce::Rectangle<float> (x, r.getY(), juce::jmax (0.0f, right - x), r.getHeight()), juce::Justification::centredLeft, true);
 }
 
 // ---------------------------------------------------------------- painting
@@ -182,23 +351,6 @@ void PostGrapeEditor::Content::paint (juce::Graphics& g)
     g.setFont (font (11.0f * z, Weight::Bold).withExtraKerningFactor (0.14f));
     g.drawText (juce::String::fromUTF8 ("BY DESNOTTO \xc2\xb7 GUITAR BUS FX"), juce::Rectangle<float> (pad + 49.0f * z, 38.0f * z, 260.0f * z, 14.0f * z),
                 juce::Justification::centredLeft, false);
-
-    // Latency chip
-    const int lat = owner.lastLatency < 0 ? 0 : owner.lastLatency;
-    auto chip = latencyChip;
-    g.setColour (juce::Colour (0xfff3e3f0));
-    g.fillRoundedRectangle (chip, 9.0f * z);
-    g.setColour (col::line);
-    g.drawRoundedRectangle (chip.reduced (0.5f), 9.0f * z, 1.0f);
-    const auto f = font (11.0f * z, Weight::ExtraBold).withExtraKerningFactor (0.06f);
-    const juce::String a = "LATENCY ", b = juce::String (lat) + " smp";
-    const float wa = textWidth (f, a), wb = textWidth (f, b);
-    float tx = chip.getCentreX() - (wa + wb) * 0.5f;
-    g.setFont (f);
-    g.setColour (col::muted);
-    g.drawText (a, juce::Rectangle<float> (tx, chip.getY(), wa + 2.0f, chip.getHeight()), juce::Justification::centredLeft, false);
-    g.setColour (lat == 0 ? juce::Colour (0xff4f9a45) : col::hot);
-    g.drawText (b, juce::Rectangle<float> (tx + wa, chip.getY(), wb + 2.0f, chip.getHeight()), juce::Justification::centredLeft, false);
 }
 
 void PostGrapeEditor::PresetBox::paint (juce::Graphics& g)
@@ -266,7 +418,7 @@ void PostGrapeEditor::PresetBox::mouseDown (const juce::MouseEvent&)
 void PostGrapeEditor::timerCallback()
 {
     for (ModulePanel* p : { (ModulePanel*) &eqPanel, (ModulePanel*) &compPanel, (ModulePanel*) &widerPanel, (ModulePanel*) &monoPanel,
-                            (ModulePanel*) &panPanel, (ModulePanel*) &lofiPanel, (ModulePanel*) &limPanel })
+                            (ModulePanel*) &panPanel, (ModulePanel*) &lofiPanel, (ModulePanel*) &limPanel, (ModulePanel*) &agPanel })
         p->refresh();
 
     const auto text = proc.presets.currentName() + (proc.presets.isDirty() ? "*" : "");
@@ -275,15 +427,116 @@ void PostGrapeEditor::timerCallback()
         lastPresetText = text;
         presetBox.repaint();
     }
-    const int lat = proc.getLatencySamples();
-    if (lat != lastLatency)
+    hintBar.setLatency (proc.getLatencySamples());
+
+    // Update check
+    const auto st = updates->status();
+    updateBtn.setBadge (st == pg::UpdateChecker::Status::Available);
+    if (st != lastUpdateStatus)
     {
-        lastLatency = lat;
-        content.repaint (content.latencyChip.toNearestInt().expanded (2));
+        lastUpdateStatus = st;
+        const bool busy = st == pg::UpdateChecker::Status::Checking || st == pg::UpdateChecker::Status::Downloading;
+        if (st == pg::UpdateChecker::Status::Downloaded)
+            updates->downloadedFile().revealToUser();
+        if (updateDialogPending && ! busy)
+        {
+            updateDialogPending = false;
+            showUpdateResult();
+        }
+    }
+}
+
+// ---------------------------------------------------------------- updates
+void PostGrapeEditor::onUpdateButton()
+{
+    using S = pg::UpdateChecker::Status;
+    const auto st = updates->status();
+    if (st == S::Available || st == S::Downloaded)
+    {
+        showUpdateResult();
+        return;
+    }
+    updateDialogPending = true;
+    if (st != S::Checking && st != S::Downloading)
+    {
+        settings->setLastUpdateCheck (juce::Time::currentTimeMillis());
+        updates->startCheck();
+    }
+}
+
+void PostGrapeEditor::showUpdateResult()
+{
+    using S = pg::UpdateChecker::Status;
+    const auto cur = pg::UpdateChecker::currentVersion();
+    const auto latest = updates->latestVersion();
+    auto openReleasePage = [this] {
+        const auto url = updates->releaseUrl();
+        juce::URL (url.isNotEmpty() ? url : "https://github.com/" + juce::String (pg::UpdateChecker::kRepo) + "/releases").launchInDefaultBrowser();
+    };
+
+    switch (updates->status())
+    {
+        case S::Available:
+            showMessage ("Update available",
+                         "Post-Grape v" + latest + " is available. You have v" + cur + ".\n\n"
+                         "Click Download. The plugin saves the zip file to the Downloads folder and opens the folder. "
+                         "Close the DAW, then replace Post-Grape.vst3 in C:\\Program Files\\Common Files\\VST3.",
+                         { { "Download", [this] { updateDialogPending = true; updates->startDownload(); } },
+                           { "Release notes", openReleasePage },
+                           { "Later", nullptr } },
+                         true);
+            break;
+        case S::UpToDate:
+            showMessage ("No update", "You have the latest version (v" + cur + ").", { { "OK", nullptr } }, true);
+            break;
+        case S::Downloaded:
+            showMessage ("Download complete",
+                         "Saved: " + updates->downloadedFile().getFullPathName() + "\n\n"
+                         "Close the DAW. Extract Post-Grape.vst3 from the zip file and copy it to C:\\Program Files\\Common Files\\VST3.",
+                         { { "Open folder", [this] { updates->downloadedFile().revealToUser(); } }, { "OK", nullptr } });
+            break;
+        case S::DownloadError:
+            showMessage ("Update", updates->errorText() + "\nOpen the release page and download the file manually.",
+                         { { "Release notes", openReleasePage }, { "OK", nullptr } });
+            break;
+        case S::Error:
+            showMessage ("Update", updates->errorText() + "\nCheck the internet connection.",
+                         { { "Retry", [this] { onUpdateButton(); } }, { "OK", nullptr } }, true);
+            break;
+        default:
+            break;
     }
 }
 
 // ---------------------------------------------------------------- dialogs
+void PostGrapeEditor::showMessage (const juce::String& title, const juce::String& message,
+                                   std::vector<std::pair<juce::String, std::function<void()>>> buttons, bool withAutoCheck)
+{
+    auto* w = new juce::AlertWindow (title, message, juce::MessageBoxIconType::NoIcon, &content);
+    w->setLookAndFeel (&lnf);
+    if (withAutoCheck)
+    {
+        autoCheckToggle.setToggleState (settings->autoCheckUpdates(), juce::dontSendNotification);
+        w->addCustomComponent (&autoCheckToggle);
+    }
+    for (int i = 0; i < (int) buttons.size(); ++i)
+    {
+        w->addButton (buttons[(size_t) i].first, i + 1,
+                      i == 0 ? juce::KeyPress (juce::KeyPress::returnKey) : juce::KeyPress(),
+                      i == (int) buttons.size() - 1 ? juce::KeyPress (juce::KeyPress::escapeKey) : juce::KeyPress());
+        if (i == 0 && buttons.size() > 1)
+            if (auto* b = w->getButton (i))
+                b->getProperties().set ("primary", true);
+    }
+    content.addAndMakeVisible (w);
+    w->setCentrePosition (content.getLocalBounds().getCentre());
+    w->enterModalState (true, juce::ModalCallbackFunction::create ([buttons] (int result) {
+                            if (result >= 1 && result <= (int) buttons.size() && buttons[(size_t) result - 1].second)
+                                buttons[(size_t) result - 1].second();
+                        }),
+                        true);
+}
+
 void PostGrapeEditor::showTextDialog (const juce::String& title, const juce::String& message, const juce::String& initial,
                                       const juce::String& okText, std::function<void (juce::String)> onOk)
 {
@@ -310,17 +563,12 @@ void PostGrapeEditor::showTextDialog (const juce::String& title, const juce::Str
 void PostGrapeEditor::showConfirm (const juce::String& title, const juce::String& message, const juce::String& okText,
                                    std::function<void()> onOk)
 {
-    auto* w = new juce::AlertWindow (title, message, juce::MessageBoxIconType::NoIcon, &content);
-    w->setLookAndFeel (&lnf);
-    w->addButton (okText, 1, juce::KeyPress (juce::KeyPress::returnKey));
-    w->addButton ("Cancel", 0, juce::KeyPress (juce::KeyPress::escapeKey));
-    content.addAndMakeVisible (w);
-    w->setCentrePosition (content.getLocalBounds().getCentre());
-    w->enterModalState (true, juce::ModalCallbackFunction::create ([onOk] (int result) {
-                            if (result == 1 && onOk)
-                                onOk();
-                        }),
-                        true);
+    if (onOk == nullptr)
+    {
+        showMessage (title, message, { { okText, nullptr } });
+        return;
+    }
+    showMessage (title, message, { { okText, std::move (onOk) }, { "Cancel", nullptr } });
 }
 
 void PostGrapeEditor::savePreset()

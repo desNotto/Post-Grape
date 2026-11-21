@@ -118,7 +118,7 @@ void PostGrapeProcessor::setStateInformation (const void* data, int sizeInBytes)
     auto tree = juce::ValueTree::fromXml (*xml);
     uiScale = juce::jlimit (1.0f, 1.25f, (float) tree.getProperty ("uiScale", 1.0f));
     uiWidth = (int) tree.getProperty ("uiWidth", 1200);
-    uiHeight = (int) tree.getProperty ("uiHeight", 820);
+    uiHeight = (int) tree.getProperty ("uiHeight", 856);
     apvts.replaceState (tree);
 
     juce::MessageManager::callAsync ([safe = juce::WeakReference<PostGrapeProcessor> (this)] {

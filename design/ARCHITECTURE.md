@@ -39,7 +39,7 @@ Note: A lookahead limiter adds latency. Thus the limiter has a lookahead switch:
 ## 4. Signal chain
 
 ```
-IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter → OUT
+IN → Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter → Auto-Gain → OUT
 ```
 
 The Wider is before the Mono-Maker. Thus the Mono-Maker removes low-frequency side content that the Wider makes.
@@ -111,6 +111,26 @@ A bypass change uses a short crossfade (10 ms) to prevent clicks.
 - Limiter, lookahead 1.5 / 5 ms: true peak under the ceiling.
 - Limiter LIVE, amp-sim signal: true peak within 0.06 dB of the ceiling.
 - Engine default: reported latency 0 samples.
+
+### 5.9 Auto-Gain (v1.1.0)
+- Last module. Default: off.
+- Two loudness detectors: plugin input (copy of the block before the chain) and chain output.
+- LUFS mode: K-weighting (high shelf +4 dB at 1682 Hz, high-pass 38 Hz, TPT SVF), sum of the channel powers.
+  RMS mode: mean of the channel powers, no weighting.
+- Detector integration time: SPEED / 6 (0.1 .. 1.5 s). Gain smoothing: SPEED / 3 (SPEED = time to follow approx. 95 %).
+- Fast start: in the first second after a reset, the gain follows with a 0.15 s time constant.
+- Gate: when the input is below -60 dB, the matched gain does not change. HOLD freezes the matched gain.
+- Gain = clamp(matched, -RANGE, +RANGE) + TRIM. A positive gain is limited by a peak envelope
+  (instant attack, 0.5 s release) so that the peaks stay under the limiter ceiling. Final clamp only for positive gain.
+- Tests: limiter +12 dB -> loudness difference 0.01 dB; EQ -9 dB + TRIM +2 dB -> +2.00 dB; gain holds in silence.
+
+## 5a. User interface additions (v1.1.0)
+- Hint bar at the bottom: mouse over a module -> module hint; mouse over a control -> control hint (src/gui/Hints.cpp).
+- Hint language RU / EN (flags in the header), default RU, global setting:
+  %APPDATA%\desNotto\Post-Grape\Post-Grape.settings.
+- Update check (src/UpdateChecker.cpp): GET https://api.github.com/repos/desNotto/Post-Grape/releases/latest,
+  compare tag_name with the plugin version, download the .zip asset to the Downloads folder.
+  Automatic check: one time each day when the editor opens (can be turned off).
 
 ## 6. Presets
 

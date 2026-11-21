@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(PostGrape VERSION 1.0.1 LANGUAGES C CXX)
+project(PostGrape VERSION 1.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -26,7 +26,7 @@ juce_add_plugin(PostGrape
     PLUGIN_CODE PGrp
     FORMATS VST3 Standalone
     PRODUCT_NAME "Post-Grape"
-    DESCRIPTION "Guitar bus post-FX: EQ, low-band compressor, wider, mono-maker, true stereo pan, lofi, true-peak limiter"
+    DESCRIPTION "Guitar bus post-FX: EQ, low-band compressor, wider, mono-maker, true stereo pan, lofi, true-peak limiter, auto-gain"
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT FALSE
     NEEDS_MIDI_OUTPUT FALSE
@@ -53,12 +53,17 @@ target_sources(PostGrape PRIVATE
     src/PluginEditor.cpp
     src/Params.cpp
     src/PresetManager.cpp
+    src/UpdateChecker.cpp
+    src/gui/Hints.cpp
     src/gui/Theme.cpp
     src/gui/Widgets.cpp
     src/gui/Displays.cpp
     src/gui/Panels.cpp)
 
 target_include_directories(PostGrape PRIVATE src)
+
+# Source files are UTF-8 (Russian hint texts).
+target_compile_options(PostGrape PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
 
 target_compile_definitions(PostGrape PUBLIC
     JUCE_WEB_BROWSER=0
@@ -87,3 +92,10 @@ add_custom_command(TARGET PostGrape_VST3 POST_BUILD
 # DSP tests (no JUCE).
 add_executable(PostGrapeTests tests/dsp_tests.cpp)
 target_include_directories(PostGrapeTests PRIVATE src)
+
+# Manual network test of the update checker (not built by default).
+juce_add_console_app(PostGrapeUpdateTest PRODUCT_NAME "PostGrapeUpdateTest")
+set_target_properties(PostGrapeUpdateTest PROPERTIES EXCLUDE_FROM_ALL TRUE)
+target_sources(PostGrapeUpdateTest PRIVATE tests/update_test.cpp src/UpdateChecker.cpp)
+target_compile_definitions(PostGrapeUpdateTest PRIVATE JucePlugin_VersionString="1.0.0" JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+target_link_libraries(PostGrapeUpdateTest PRIVATE juce::juce_events PUBLIC juce::juce_recommended_config_flags)

@@ -164,6 +164,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout createLayout()
     lim->addChild (ch ("lim_os", "Limiter Oversampling", { "4x", "8x", "16x" }, 0));
     layout.add (std::move (lim));
 
+    // ---- 8. Auto-Gain ----
+    auto ag = std::make_unique<juce::AudioProcessorParameterGroup> ("ag", "Auto-Gain", "|");
+    ag->addChild (sw ("ag_on", "Auto-Gain On", false));
+    ag->addChild (fl ("ag_speed", "Auto-Gain Speed", logRange (0.3f, 10.0f), 3.0f,
+                      [] (float v, int) { return juce::String (v, v >= 10.0f ? 1 : 2) + " s"; }));
+    ag->addChild (fl ("ag_range", "Auto-Gain Range", Range (0.0f, 24.0f), 12.0f, fmtDb));
+    ag->addChild (fl ("ag_trim", "Auto-Gain Trim", Range (-12.0f, 12.0f), 0.0f, fmtDbSigned));
+    ag->addChild (ch ("ag_detect", "Auto-Gain Detector", { "LUFS", "RMS" }, 0));
+    ag->addChild (sw ("ag_hold", "Auto-Gain Hold", false));
+    layout.add (std::move (ag));
+
     return layout;
 }
 
@@ -189,6 +200,7 @@ Reader::Reader (juce::AudioProcessorValueTreeState& apvts) : state (apvts)
     lNoise = p ("lofi_noise"); lWobble = p ("lofi_wobble"); lDrive = p ("lofi_drive"); lMix = p ("lofi_mix");
     limGain = p ("lim_gain"); limClip = p ("lim_clip"); limCeil = p ("lim_ceiling"); limRel = p ("lim_release");
     limAdapt = p ("lim_adapt"); limOut = p ("lim_out"); limLook = p ("lim_look"); limOs = p ("lim_os");
+    agSpeed = p ("ag_speed"); agRange = p ("ag_range"); agTrim = p ("ag_trim"); agDetect = p ("ag_detect"); agHold = p ("ag_hold");
 }
 
 std::atomic<float>* Reader::p (const juce::String& id) const
@@ -256,5 +268,11 @@ void Reader::read (EngineSettings& s) const noexcept
     s.lim.outDb = v (limOut);
     s.lim.lookaheadIndex = i (limLook);
     s.lim.osIndex = i (limOs);
+
+    s.ag.speedSec = v (agSpeed);
+    s.ag.rangeDb = v (agRange);
+    s.ag.trimDb = v (agTrim);
+    s.ag.lufs = i (agDetect) == 0;
+    s.ag.hold = v (agHold) > 0.5;
 }
 } // namespace pg::params

@@ -45,7 +45,7 @@ public:
 
     // Editor state (saved with the project).
     float uiScale = 1.0f;
-    int uiWidth = 1200, uiHeight = 820;
+    int uiWidth = 1200, uiHeight = 856;
 
     double currentSampleRate() const noexcept { return sampleRateNow.load(); }
 

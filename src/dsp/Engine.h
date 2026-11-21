@@ -1,7 +1,8 @@
-// Post-Grape — the complete chain of 7 modules with bypass crossfades.
-// IN -> Bus EQ -> Bus Compressor -> Wider -> Mono-Maker -> True Stereo Pan -> Lofi -> Bus Limiter -> OUT
+// Post-Grape — the complete chain of 8 modules with bypass crossfades.
+// IN -> Bus EQ -> Bus Compressor -> Wider -> Mono-Maker -> True Stereo Pan -> Lofi -> Bus Limiter -> Auto-Gain -> OUT
 #pragma once
 
+#include "AutoGain.h"
 #include "BusComp.h"
 #include "BusEQ.h"
 #include "Limiter.h"
@@ -10,11 +11,11 @@
 
 namespace pg
 {
-enum ModuleId { kEq = 0, kComp, kWide, kMono, kPan, kLofi, kLim, kNumModules };
+enum ModuleId { kEq = 0, kComp, kWide, kMono, kPan, kLofi, kLim, kAg, kNumModules };
 
 struct EngineSettings
 {
-    std::array<bool, kNumModules> on { true, true, true, true, true, true, true };
+    std::array<bool, kNumModules> on { true, true, true, true, true, true, true, false };
     EqSettings eq;
     CompSettings comp;
     WiderSettings wide;
@@ -22,6 +23,7 @@ struct EngineSettings
     PanSettings pan;
     LofiSettings lofi;
     LimiterSettings lim;
+    AutoGainSettings ag;
 };
 
 class Engine
@@ -34,6 +36,7 @@ public:
     TruePan pan;
     Lofi lofi;
     Limiter lim;
+    AutoGain ag;
 
     void setSettings (const EngineSettings& s) noexcept
     {
@@ -45,6 +48,9 @@ public:
         pan.setSettings (s.pan);
         lofi.setSettings (s.lofi);
         lim.setSettings (s.lim);
+        auto a = s.ag;
+        a.ceilingDb = s.on[kLim] ? s.lim.ceilingDb : 0.0;
+        ag.setSettings (a);
     }
 
     void prepare (double sampleRate, int maxBlock)
@@ -52,6 +58,8 @@ public:
         maxN = std::max (1, maxBlock);
         dryL.assign ((size_t) maxN, 0.0);
         dryR.assign ((size_t) maxN, 0.0);
+        inL.assign ((size_t) maxN, 0.0);
+        inR.assign ((size_t) maxN, 0.0);
         for (int m = 0; m < kNumModules; ++m)
         {
             modules[(size_t) m]->prepare (sampleRate, maxN);
@@ -84,6 +92,11 @@ public:
 private:
     void processChunk (double* L, double* R, int n) noexcept
     {
+        // Keep the unprocessed input for the Auto-Gain reference.
+        std::copy (L, L + n, inL.begin());
+        std::copy (R, R + n, inR.begin());
+        ag.setInput (inL.data(), inR.data());
+
         for (size_t m = 0; m < (size_t) kNumModules; ++m)
         {
             auto& f = fade[m];
@@ -120,10 +133,10 @@ private:
     }
 
     EngineSettings st;
-    std::array<Module*, kNumModules> modules { &eq, &comp, &wide, &mono, &pan, &lofi, &lim };
+    std::array<Module*, kNumModules> modules { &eq, &comp, &wide, &mono, &pan, &lofi, &lim, &ag };
     std::array<Smoother, kNumModules> fade;
     std::array<bool, kNumModules> stale {};
-    std::vector<double> dryL, dryR;
+    std::vector<double> dryL, dryR, inL, inR;
     int maxN = 512;
     double lastFs = 48000.0;
 };

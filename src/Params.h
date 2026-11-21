@@ -7,7 +7,7 @@
 namespace pg::params
 {
 // Module power switches (same order as pg::ModuleId).
-inline const char* const kModuleOn[kNumModules] = { "eq_on", "comp_on", "wide_on", "mono_on", "pan_on", "lofi_on", "lim_on" };
+inline const char* const kModuleOn[kNumModules] = { "eq_on", "comp_on", "wide_on", "mono_on", "pan_on", "lofi_on", "lim_on", "ag_on" };
 
 inline juce::String bandId (int band, const char* name) { return "eq_b" + juce::String (band + 1) + "_" + name; }
 
@@ -33,5 +33,6 @@ private:
     std::atomic<float> *pPan, *pSpread;
     std::atomic<float> *lActive, *lTone, *lBits, *lRate, *lNoise, *lWobble, *lDrive, *lMix;
     std::atomic<float> *limGain, *limClip, *limCeil, *limRel, *limAdapt, *limOut, *limLook, *limOs;
+    std::atomic<float> *agSpeed, *agRange, *agTrim, *agDetect, *agHold;
 };
 } // namespace pg::params
