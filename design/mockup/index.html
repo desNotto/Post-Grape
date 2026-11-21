@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post-Grape Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#efe0ea; --win:#f6eaf3; --panel:#fbf5f9; --panel2:#f6e9f3;
+  --line:#e2c6dc; --line2:#d6aed0; --soft:#ebcde6;
+  --pink:#d36fae; --pink2:#e79bcf; --hot:#c2458f;
+  --lav:#b98ac0; --lav2:#a56fb0; --plum:#6b3074; --deep:#3d1849; --ink:#2f1240;
+  --muted:#8e6a92;
+  --led-g:#9ccf86; --led-y:#f3d27a; --led-o:#f2a35f; --led-r:#ef7a8a; --led-p:#c58ad6; --led-off:#e6d6e3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#dccbd7;font-family:Nunito,system-ui,sans-serif;color:var(--ink)}
+body{padding:24px;min-height:100vh}
+.hint{max-width:1200px;margin:0 auto 14px;font-size:13px;color:#5b3b62;line-height:1.45}
+.hint b{color:var(--deep)}
+#plugin{position:relative;width:1200px;height:820px;min-width:980px;min-height:700px;resize:both;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%,#fbf2f8 0%,var(--win) 45%,#efdcea 100%);
+  border-radius:18px;border:1px solid #d9b9d2;box-shadow:0 20px 60px #6b307433,inset 0 1px 0 #fff;
+  display:flex;flex-direction:column;padding:0 14px 14px}
+#plugin.z125{zoom:1.25}
+/* header */
+.hdr{height:62px;display:flex;align-items:center;gap:14px;flex:none}
+.logo{display:flex;align-items:center;gap:8px;min-width:250px}
+.logo img{height:46px;filter:drop-shadow(0 2px 2px #6b307433)}
+.logo h1{margin:0;font-size:26px;font-weight:900;letter-spacing:.06em;color:var(--deep);line-height:1}
+.logo small{display:block;font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--lav2);margin-top:3px}
+.presets{flex:1;display:flex;justify-content:center;align-items:center;gap:8px}
+.pbtn{width:34px;height:34px;border-radius:10px;border:1px solid var(--line2);display:grid;place-items:center;cursor:pointer;
+  background:linear-gradient(#fff9fd,#f1dfee);box-shadow:0 2px 3px #6b30741f,inset 0 1px 0 #fff;color:var(--plum)}
+.pbtn:hover{background:linear-gradient(#fff,#f7e6f3)}
+.pbtn svg{width:18px;height:18px}
+.pname{width:300px;height:34px;border-radius:17px;border:1px solid var(--line2);display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;background:linear-gradient(#fdf6fb,#f3e3f0);box-shadow:inset 0 2px 4px #6b307418;font-weight:700;font-size:14px;color:var(--deep);cursor:pointer}
+.pname span.cat{font-size:11px;color:var(--lav2);font-weight:800;letter-spacing:.08em;margin-right:8px}
+.right{display:flex;align-items:center;gap:10px;min-width:250px;justify-content:flex-end}
+.seg{display:inline-flex;border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#f3e3f0;box-shadow:inset 0 1px 3px #6b307420}
+.seg button{white-space:nowrap;border:0;background:transparent;font:800 11px Nunito;letter-spacing:.05em;color:var(--muted);padding:5px 10px;cursor:pointer}
+.seg button.on{background:linear-gradient(#f3a6d6,#d873b4);color:#fff;text-shadow:0 1px 1px #8a2d6a66}
+.lat{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.06em;padding:5px 9px;border-radius:9px;background:#f3e3f0;border:1px solid var(--line)}
+.lat b{color:#4f9a45}
+/* grid */
+.main{flex:1;display:grid;gap:12px;grid-template-rows:1.55fr 1fr 1.08fr;min-height:0}
+.row{display:grid;gap:12px;min-height:0}
+.r1{grid-template-columns:1.8fr 1fr}
+.r2{grid-template-columns:1fr 1fr 1fr 1.3fr}
+/* panel */
+.panel{position:relative;background:linear-gradient(var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 3px 8px #6b30741a,inset 0 1px 0 #fff,inset 0 0 0 3px #fff6;display:flex;flex-direction:column;min-height:0;padding:8px 12px 10px}
+.panel::before,.panel::after{content:"";position:absolute;top:8px;width:7px;height:7px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff,#d8b9d2);border:1px solid #c9a3c3}
+.panel::before{left:8px}.panel::after{right:8px}
+.panel.off .body{opacity:.38;filter:saturate(.3);pointer-events:none}
+.ph{display:flex;align-items:center;gap:8px;height:30px;padding-left:10px;flex:none}
+.ph h2{margin:0;font-size:13px;font-weight:900;letter-spacing:.12em;color:var(--deep);text-transform:uppercase}
+.ph .tag{font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--lav2);margin-left:auto;margin-right:12px}
+.leafdeco{position:absolute;right:4px;bottom:2px;width:30px;opacity:.9;pointer-events:none}
+.body{flex:1;display:flex;gap:10px;min-height:0;align-items:stretch}
+/* power */
+.pwr{width:28px;height:28px;border-radius:50%;cursor:pointer;flex:none;display:grid;place-items:center;
+  background:radial-gradient(circle at 40% 35%,#fff 0%,#f6c6e4 45%,#e48cc6 100%);border:1px solid #d07ab4;
+  box-shadow:0 0 10px #ef8fcf99,inset 0 1px 1px #fff}
+.pwr img{width:18px}
+.off .pwr{background:radial-gradient(circle at 40% 35%,#f9f2f7,#dccbd8);border-color:#c3a9bf;box-shadow:inset 0 1px 2px #6b307433}
+.off .pwr img{filter:grayscale(.85) opacity(.65)}
+/* knobs */
+.knobs{display:flex;flex-wrap:wrap;align-content:center;align-items:flex-end;justify-content:center;gap:4px 6px;flex:1}
+.knob{display:flex;flex-direction:column;align-items:center;user-select:none;cursor:ns-resize;position:relative}
+.knob svg{display:block;overflow:visible}
+.knob .lbl{font-size:10px;font-weight:900;letter-spacing:.1em;color:var(--plum);margin-top:1px}
+.knob .val{font-size:10.5px;font-weight:700;color:var(--muted);min-height:14px}
+.knob .dg{position:absolute;pointer-events:none}
+/* displays */
+.screen{position:relative;border-radius:12px;border:1px solid var(--line2);background:linear-gradient(#fdf8fc,#f5e8f2);
+  box-shadow:inset 0 2px 8px #6b307422,0 1px 0 #fff;overflow:hidden}
+.screen canvas{position:absolute;inset:0;width:100%;height:100%}
+.chip{position:absolute;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--plum);background:#fff8fcd9;border:1px solid var(--line);
+  border-radius:7px;padding:3px 7px;line-height:1.3}
+/* eq */
+.eqwrap{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.eqwrap .screen{flex:1;min-height:90px}
+.eqctl{display:flex;align-items:center;gap:8px;flex:none}
+.bands{display:flex;gap:4px}
+.bands button{width:30px;height:24px;border-radius:8px;border:1px solid var(--line2);background:linear-gradient(#fff9fd,#f1dfee);font:900 11px Nunito;color:var(--plum);cursor:pointer}
+.bands button.on{background:linear-gradient(#f3a6d6,#d873b4);color:#fff;border-color:#cc6aa9}
+.eqside{display:flex;flex-direction:column;justify-content:center;gap:2px;flex:none}
+/* meters */
+.meters{display:flex;gap:5px;align-items:stretch;flex:none;padding:2px 0}
+.mcol{display:flex;flex-direction:column;align-items:center;gap:3px}
+.mcol span{font-size:9px;font-weight:900;color:var(--muted);letter-spacing:.06em}
+.led{width:16px;flex:1;border-radius:8px;padding:3px;background:linear-gradient(#f3e3ef,#ead6e6);border:1px solid var(--line2);
+  display:flex;flex-direction:column-reverse;gap:2px;box-shadow:inset 0 1px 2px #6b307422}
+.led i{flex:1;border-radius:3px;background:var(--led-off);border:1px solid #d9c4d5;min-height:3px}
+.led.gr{flex-direction:column}
+/* toggle switch */
+.tsw{width:120px;height:44px;border-radius:22px;position:relative;cursor:pointer;flex:none;
+  background:linear-gradient(#f8dcef,#efc0e0);border:1px solid #d692c1;box-shadow:inset 0 2px 5px #9a3f7c33,0 0 12px #ef8fcf66}
+.tsw .sw{position:absolute;left:12px;top:10px;width:58px;opacity:.95}
+.tsw .nub{position:absolute;top:2px;right:2px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;transition:.18s;
+  background:radial-gradient(circle at 40% 35%,#fff,#f5c3e3 55%,#de86c0);border:1px solid #c975ae;box-shadow:0 2px 4px #6b307440}
+.tsw .nub img{width:24px}
+.tsw.offs{background:linear-gradient(#eee2ec,#dccbd8);border-color:#c3a9bf;box-shadow:inset 0 2px 5px #6b307426}
+.tsw.offs .nub{right:80px;background:radial-gradient(circle at 40% 35%,#fbf6fa,#d9c6d6);border-color:#bda1b9}
+.tsw.offs .nub img,.tsw.offs .sw{filter:grayscale(.9) opacity(.6)}
+.tsw.offs .sw{left:50px}
+.col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.cap{font-size:10px;font-weight:900;letter-spacing:.1em;color:var(--plum)}
+.mini{font-size:10px;font-weight:700;color:var(--muted)}
+.resize{position:absolute;right:4px;bottom:4px;width:16px;height:16px;pointer-events:none;opacity:.6}
+.lim .screen{flex:1;min-width:0}
+.limctl{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;flex:none}
+.notes{max-width:1200px;margin:16px auto 0;font-size:13px;color:#5b3b62;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="hint"><b>Post-Grape UI mockup v1</b> — knobs: drag up/down, double-click to reset. EQ nodes: drag in the graph. Grape buttons: module on/off. The window corner resizes freely. 100% / 125% changes scale.</div>
+
+<div id="plugin">
+  <div class="hdr">
+    <div class="logo"><img src="img/grapes.png" alt=""><div><h1>POST-GRAPE</h1><small>BY DESNOTTO · GUITAR BUS FX</small></div></div>
+    <div class="presets">
+      <div class="pbtn" title="Previous preset"><svg viewBox="0 0 20 20"><path d="M12.5 4 6.5 10l6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="pname" title="Preset list"><div><span class="cat">FACTORY</span>Drop A Wall</div><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" fill="none" stroke="#8e6a92" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="pbtn" title="Next preset"><svg viewBox="0 0 20 20"><path d="M7.5 4l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="pbtn" title="Save preset"><svg viewBox="0 0 20 20"><path d="M4 3h10l3 3v11H4z" fill="#e7c6e3" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><rect x="7" y="3" width="6" height="4" fill="#fff" stroke="currentColor" stroke-width="1.4"/><rect x="6.5" y="11" width="8" height="6" rx="1" fill="#fff" stroke="currentColor" stroke-width="1.4"/></svg></div>
+      <div class="pbtn" title="Rename preset"><svg viewBox="0 0 20 20"><path d="M4 16l1-4 8-8 3 3-8 8z" fill="#e7c6e3" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+      <div class="pbtn" title="Delete preset"><svg viewBox="0 0 20 20"><path d="M5 6h10l-1 11H6z" fill="#e7c6e3" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3.5 6h13M8 6V4h4v2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+      <div class="pbtn" title="Preset folder"><svg viewBox="0 0 20 20"><path d="M3 5h5l2 2h7v9H3z" fill="#e7c6e3" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="right">
+      <div class="lat">LATENCY <b id="latv">0 smp</b></div>
+      <div class="seg" id="zoom"><button class="on" data-z="1">100%</button><button data-z="1.25">125%</button></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="row r1">
+      <!-- 1 BUS EQ -->
+      <section class="panel" id="m-eq">
+        <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Bus EQ</h2><span class="tag">TPT SVF · 64-BIT · MIN-PHASE</span></div>
+        <div class="body">
+          <div class="eqwrap">
+            <div class="screen" id="eqscreen"><canvas id="eqc"></canvas>
+              <div class="chip" style="left:8px;top:8px">M/S EQ</div>
+            </div>
+            <div class="eqctl">
+              <div class="bands" id="bandsel"><button data-b="0" class="on">1</button><button data-b="1">2</button><button data-b="2">3</button><button data-b="3">4</button></div>
+              <div class="seg" id="bandtgt"><button data-t="ST" class="on">STEREO</button><button data-t="MID">MID</button><button data-t="SIDE">SIDE</button></div>
+              <div class="seg" id="bandtype"><button data-y="PK" class="on">BELL</button><button data-y="NT">NOTCH</button><button data-y="LS">LO SHELF</button><button data-y="HS">HI SHELF</button></div>
+            </div>
+          </div>
+          <div class="eqside">
+            <div class="knobs" style="flex:none;width:170px">
+              <div data-knob="eqF" data-label="FREQ"  data-min="20" data-max="20000" data-def="1000" data-log="1" data-unit="Hz" data-size="52"></div>
+              <div data-knob="eqG" data-label="GAIN"  data-min="-18" data-max="18" data-def="0" data-unit="dB" data-size="52" data-bip="1"></div>
+              <div data-knob="eqQ" data-label="Q"     data-min="0.1" data-max="20" data-def="1" data-log="1" data-unit="" data-size="52"></div>
+              <div data-knob="hp"  data-label="HPF"   data-min="40" data-max="150" data-def="70" data-log="1" data-unit="Hz" data-size="52"></div>
+              <div data-knob="lp"  data-label="LPF"   data-min="6000" data-max="16000" data-def="12500" data-log="1" data-unit="Hz" data-size="52"></div>
+              <div data-knob="eqOut" data-label="OUTPUT" data-min="-12" data-max="12" data-def="0" data-unit="dB" data-size="52" data-bip="1"></div>
+            </div>
+          </div>
+        </div>
+        <img class="leafdeco" src="img/leaf.png" alt="">
+      </section>
+
+      <!-- 2 BUS COMP -->
+      <section class="panel" id="m-comp">
+        <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Bus Compressor</h2><span class="tag">LOW BAND ONLY</span></div>
+        <div class="body">
+          <div class="knobs">
+            <div data-knob="cSplit" data-label="SPLIT" data-min="80" data-max="350" data-def="160" data-log="1" data-unit="Hz" data-size="62" data-deco="1"></div>
+            <div data-knob="cThr" data-label="THRESH" data-min="-48" data-max="0" data-def="-18" data-unit="dB" data-size="62" data-deco="1"></div>
+            <div data-knob="cRat" data-label="RATIO" data-min="1" data-max="20" data-def="4" data-log="1" data-unit=":1" data-size="48"></div>
+            <div data-knob="cAtt" data-label="ATTACK" data-min="0.1" data-max="100" data-def="10" data-log="1" data-unit="ms" data-size="48"></div>
+            <div data-knob="cRel" data-label="RELEASE" data-min="10" data-max="1000" data-def="120" data-log="1" data-unit="ms" data-size="48"></div>
+            <div data-knob="cSc" data-label="SC HPF" data-min="20" data-max="300" data-def="40" data-log="1" data-unit="Hz" data-size="48"></div>
+            <div data-knob="cLink" data-label="LINK" data-min="0" data-max="100" data-def="100" data-unit="%" data-size="48"></div>
+            <div data-knob="cMk" data-label="MAKEUP" data-min="0" data-max="12" data-def="2" data-unit="dB" data-size="48"></div>
+          </div>
+          <div class="meters"><div class="mcol"><div class="led gr" id="compgr"></div><span>GR</span></div></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="row r2">
+      <!-- 3 WIDER -->
+      <section class="panel" id="m-wide">
+        <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Wider</h2></div>
+        <div class="body">
+          <div class="knobs">
+            <div data-knob="wW" data-label="WIDTH" data-min="0" data-max="200" data-def="130" data-unit="%" data-size="60" data-deco="1"></div>
+            <div data-knob="wAir" data-label="SIDE AIR" data-min="0" data-max="9" data-def="2.5" data-unit="dB" data-size="44"></div>
+            <div data-knob="wLo" data-label="SIDE CUT" data-min="40" data-max="400" data-def="120" data-log="1" data-unit="Hz" data-size="44"></div>
+          </div>
+          <div class="col" style="width:42px"><canvas id="corr" width="36" height="110" style="width:18px;height:100%;max-height:110px;border-radius:9px;border:1px solid var(--line2)"></canvas><span class="mini">CORR</span></div>
+        </div>
+      </section>
+
+      <!-- 4 MONO-MAKER -->
+      <section class="panel" id="m-mono">
+        <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Mono-Maker</h2></div>
+        <div class="body" style="flex-direction:column">
+          <div class="knobs" style="flex:none">
+            <div data-knob="mF" data-label="FREQ" data-min="60" data-max="250" data-def="120" data-log="1" data-unit="Hz" data-size="60" data-deco="1"></div>
+            <div data-knob="mW" data-label="LOW WIDTH" data-min="0" data-max="100" data-def="0" data-unit="%" data-size="60"></div>
+          </div>
+          <div class="screen" style="flex:1;min-height:26px"><canvas id="monoc"></canvas></div>
+        </div>
+      </section>
+
+      <!-- 5 TRUE STEREO PAN -->
+      <section class="panel" id="m-pan">
+        <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>True Stereo Pan</h2></div>
+        <div class="body" style="flex-direction:column">
+          <div class="screen" style="flex:1;min-height:40px"><canvas id="panc"></canvas></div>
+          <div class="knobs" style="flex:none">
+            <div data-knob="pP" data-label="PAN" data-min="-100" data-max="100" data-def="0" data-unit="" data-size="54" data-bip="1" data-pan="1"></div>
+            <div data-knob="pW" data-label="SPREAD" data-min="0" data-max="100" data-def="100" data-unit="%" data-size="54"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6 LOFI -->
+      <section class="panel" id="m-lofi">
+        <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Lofi</h2><span class="tag">AUTOMATE ON / OFF</span></div>
+        <div class="body">
+          <div class="col" style="width:128px">
+            <div class="tsw offs" id="lofisw"><img class="sw" src="img/swirl.png" alt=""><div class="nub"><img src="img/grapes.png" alt=""></div></div>
+            <span class="cap" id="lofilbl">LOFI OFF</span>
+            <div data-knob="lMix" data-label="MIX" data-min="0" data-max="100" data-def="100" data-unit="%" data-size="44"></div>
+          </div>
+          <div class="knobs">
+            <div data-knob="lTone" data-label="TONE" data-min="300" data-max="6000" data-def="1800" data-log="1" data-unit="Hz" data-size="44"></div>
+            <div data-knob="lBits" data-label="BITS" data-min="4" data-max="16" data-def="10" data-unit="bit" data-size="44"></div>
+            <div data-knob="lRate" data-label="RATE" data-min="2" data-max="48" data-def="16" data-unit="kHz" data-size="44"></div>
+            <div data-knob="lNoise" data-label="NOISE" data-min="0" data-max="100" data-def="15" data-unit="%" data-size="44"></div>
+            <div data-knob="lWob" data-label="WOBBLE" data-min="0" data-max="100" data-def="20" data-unit="%" data-size="44"></div>
+            <div data-knob="lDrv" data-label="DRIVE" data-min="0" data-max="24" data-def="6" data-unit="dB" data-size="44"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 7 LIMITER -->
+    <section class="panel lim" id="m-lim">
+      <div class="ph"><div class="pwr"><img src="img/grapes.png" alt=""></div><h2>Bus Limiter</h2><span class="tag">SOFT CLIP → TRUE-PEAK BRICKWALL · OVERSAMPLED</span></div>
+      <div class="body">
+        <div class="screen" id="limscreen"><canvas id="limc"></canvas>
+          <div class="chip" style="left:10px;top:8px">INPUT <span style="color:#b39ab8">▬</span> &nbsp; OUTPUT <span style="color:#e06fb6">▬</span> &nbsp; GAIN REDUCTION <span style="color:#6b3074">▬</span></div>
+          <div class="chip" style="right:10px;top:8px" id="limchip">CEILING −0.3 dBTP · GR −2.4 dB</div>
+          <img src="img/grapes.png" style="position:absolute;left:-6px;bottom:-8px;width:40px;opacity:.95" alt=""><img src="img/leaf.png" style="position:absolute;right:-4px;bottom:-6px;width:30px" alt="">
+        </div>
+        <div class="knobs" style="flex:none;width:236px;gap:4px 12px">
+          <div data-knob="lmIn" data-label="GAIN" data-min="0" data-max="18" data-def="3" data-unit="dB" data-size="60" data-deco="1"></div>
+          <div data-knob="lmClip" data-label="SOFT CLIP" data-min="0" data-max="100" data-def="35" data-unit="%" data-size="60" data-deco="1"></div>
+          <div data-knob="lmCeil" data-label="CEILING" data-min="-12" data-max="0" data-def="-0.3" data-unit="dB" data-size="60" data-deco="1"></div>
+          <div data-knob="lmRel" data-label="RELEASE" data-min="5" data-max="500" data-def="60" data-log="1" data-unit="ms" data-size="46"></div>
+          <div data-knob="lmAdapt" data-label="ADAPT" data-min="0" data-max="100" data-def="70" data-unit="%" data-size="46"></div>
+          <div data-knob="lmOut" data-label="OUTPUT" data-min="-12" data-max="0" data-def="0" data-unit="dB" data-size="46"></div>
+        </div>
+        <div class="limctl">
+          <span class="cap">LOOKAHEAD</span>
+          <div class="seg" id="look"><button class="on" data-l="0">LIVE 0</button><button data-l="1.5">1.5 ms</button><button data-l="5">5 ms</button></div>
+          <span class="cap">OVERSAMPLING</span>
+          <div class="seg" id="os"><button class="on">4×</button><button>8×</button><button>16×</button></div>
+        </div>
+        <div class="meters">
+          <div class="mcol"><div class="led" id="inL"></div><span>IN</span></div>
+          <div class="mcol"><div class="led" id="inR"></div><span>&nbsp;</span></div>
+          <div class="mcol"><div class="led gr" id="limgr"></div><span>GR</span></div>
+          <div class="mcol"><div class="led" id="outL"></div><span>OUT</span></div>
+          <div class="mcol"><div class="led" id="outR"></div><span>&nbsp;</span></div>
+        </div>
+      </div>
+      
+    </section>
+  </div>
+  <svg class="resize" viewBox="0 0 16 16"><path d="M15 5L5 15M15 10l-5 5" stroke="#8e6a92" stroke-width="1.6" stroke-linecap="round"/></svg>
+</div>
+
+<div class="notes">Chain order: Bus EQ → Bus Compressor → Wider → Mono-Maker → True Stereo Pan → Lofi → Bus Limiter.</div>
+
+<script>
+const P = {};               // parameter values
+const knobs = {};
+const A0 = -135, A1 = 135;  // knob angles
+function toNorm(k,v){return k.log? Math.log(v/k.min)/Math.log(k.max/k.min) : (v-k.min)/(k.max-k.min)}
+function fromNorm(k,n){n=Math.min(1,Math.max(0,n));return k.log? k.min*Math.pow(k.max/k.min,n) : k.min+n*(k.max-k.min)}
+function fmt(k,v){
+  if(k.pan){const r=Math.round(v);return r===0?'C':(r<0?'L'+(-r):'R'+r)}
+  let s; const a=Math.abs(v);
+  if(k.unit==='Hz'&&v>=1000) return (v/1000).toFixed(v>=10000?1:2)+' kHz';
+  s = a>=100? v.toFixed(0) : a>=10? v.toFixed(1) : v.toFixed(2);
+  if(k.bip&&v>0) s='+'+s;
+  return s+(k.unit?(k.unit===':1'?':1':' '+k.unit):'');
+}
+function polar(r,a){const t=(a-90)*Math.PI/180;return [50+r*Math.cos(t),50+r*Math.sin(t)]}
+function knobSVG(k){
+  let ticks='';
+  for(let i=0;i<=10;i++){const a=A0+i*27, big=i%5===0;const [x1,y1]=polar(big?41:42,a),[x2,y2]=polar(47,a);
+    ticks+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#5b2864" stroke-width="${big?2.2:1.5}" stroke-linecap="round" opacity="${big?.9:.55}"/>`}
+  const [mx,my]=polar(49.5,0);
+  const id='g'+Math.random().toString(36).slice(2,7);
+  return `<svg width="${k.size}" height="${k.size}" viewBox="0 0 100 100">
+  <defs><radialGradient id="${id}c" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#fffbfd"/><stop offset=".6" stop-color="#f4e6f0"/><stop offset="1" stop-color="#e2c9dc"/></radialGradient>
+  <linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f1dcec"/><stop offset="1" stop-color="#c9a2c2"/></linearGradient>
+  <filter id="${id}s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.2" flood-color="#6b3074" flood-opacity=".35"/></filter></defs>
+  ${ticks}<circle cx="${mx}" cy="${my}" r="2.6" fill="#c2458f"/>
+  <path class="arc" fill="none" stroke="#e58cc6" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+  <g filter="url(#${id}s)"><circle cx="50" cy="50" r="36" fill="url(#${id}r)"/>
+  <circle cx="50" cy="50" r="35" fill="none" stroke="#b78bb0" stroke-width="3.2" stroke-dasharray="1.2 1.6" opacity=".55"/></g>
+  <circle cx="50" cy="50" r="30" fill="url(#${id}c)" stroke="#d8bdd2" stroke-width="1"/>
+  <g class="ptr"><line x1="50" y1="23" x2="50" y2="36" stroke="#c2458f" stroke-width="3.2" stroke-linecap="round"/></g></svg>`;
+}
+function arcPath(a0,a1){ if(Math.abs(a1-a0)<.5) return ''; const [x0,y0]=polar(39,a0),[x1,y1]=polar(39,a1);
+  return `M${x0} ${y0}A39 39 0 ${Math.abs(a1-a0)>180?1:0} ${a1>a0?1:0} ${x1} ${y1}`}
+function setKnob(name,v,silent){
+  const k=knobs[name]; v=Math.min(k.max,Math.max(k.min,v)); P[name]=v;
+  const n=toNorm(k,v), a=A0+n*(A1-A0);
+  k.ptr.setAttribute('transform',`rotate(${a} 50 50)`);
+  const from = k.bip? 0 : A0; k.arc.setAttribute('d',arcPath(Math.min(from,a),Math.max(from,a)));
+  k.val.textContent=fmt(k,v);
+  if(!silent) onParam(name,v);
+}
+document.querySelectorAll('[data-knob]').forEach(el=>{
+  const d=el.dataset, k={min:+d.min,max:+d.max,def:+d.def,log:!!d.log,unit:d.unit||'',size:+d.size||50,bip:!!d.bip,pan:!!d.pan};
+  el.className='knob';
+  el.innerHTML=knobSVG(k)+`<div class="lbl">${d.label}</div><div class="val"></div>`;
+  if(d.deco){const s=k.size;el.insertAdjacentHTML('beforeend',
+    `<img class="dg" src="img/grapes.png" style="width:${s*.36}px;left:${-s*.05}px;top:${s*.6}px">`+
+    `<img class="dg" src="img/vine.png" style="width:${s*.4}px;right:${-s*.12}px;top:${s*.62}px;opacity:.9">`)}
+  k.ptr=el.querySelector('.ptr');k.arc=el.querySelector('.arc');k.val=el.querySelector('.val');
+  knobs[d.knob]=k; setKnob(d.knob,k.def,true);
+  let y0,n0;
+  el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);y0=e.clientY;n0=toNorm(k,P[d.knob])});
+  el.addEventListener('pointermove',e=>{if(!el.hasPointerCapture(e.pointerId))return;
+    const sens=e.shiftKey?900:220; setKnob(d.knob,fromNorm(k,n0+(y0-e.clientY)/sens))});
+  el.addEventListener('dblclick',()=>setKnob(d.knob,k.def));
+});
+
+/* power buttons */
+document.querySelectorAll('.pwr').forEach(b=>b.addEventListener('click',()=>b.closest('.panel').classList.toggle('off')));
+/* segmented */
+function seg(id,cb){const s=document.getElementById(id);s.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  s.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));cb&&cb(b.dataset)})}
+seg('zoom',d=>document.getElementById('plugin').classList.toggle('z125',d.z==='1.25'));
+seg('os');
+seg('look',d=>{const sm=Math.round(+d.l*48);document.getElementById('latv').textContent=sm+' smp';document.getElementById('latv').style.color=sm?'#c2458f':'#4f9a45'});
+/* lofi switch */
+const lsw=document.getElementById('lofisw');
+lsw.addEventListener('click',()=>{lsw.classList.toggle('offs');document.getElementById('lofilbl').textContent=lsw.classList.contains('offs')?'LOFI OFF':'LOFI ON'});
+
+/* ---------- EQ ---------- */
+const bands=[{f:95,g:-2.5,q:1.4,t:'ST',y:'PK'},{f:380,g:-3,q:2.2,t:'MID',y:'PK'},{f:2650,g:-9,q:16,t:'ST',y:'NT'},{f:6500,g:2,q:0.7,t:'SIDE',y:'HS'}];
+let sel=0;
+function loadBand(){const b=bands[sel];setKnob('eqF',b.f,true);setKnob('eqG',b.g,true);setKnob('eqQ',b.q,true);
+  document.querySelectorAll('#bandtgt button').forEach(x=>x.classList.toggle('on',x.dataset.t===b.t));
+  document.querySelectorAll('#bandtype button').forEach(x=>x.classList.toggle('on',x.dataset.y===b.y));
+  document.querySelectorAll('#bandsel button').forEach(x=>x.classList.toggle('on',+x.dataset.b===sel))}
+seg('bandsel',d=>{sel=+d.b;loadBand();drawEQ()});
+seg('bandtgt',d=>{bands[sel].t=d.t;drawEQ()});
+seg('bandtype',d=>{bands[sel].y=d.y;drawEQ()});
+function onParam(n,v){
+  if(n==='eqF')bands[sel].f=v; if(n==='eqG')bands[sel].g=v; if(n==='eqQ')bands[sel].q=v;
+  if(/^eq|^hp|^lp/.test(n))drawEQ();
+  if(/^m/.test(n))drawMono(); if(/^p/.test(n))drawPan();
+}
+// analog prototype magnitude (dB)
+function cabs(re,im){return Math.hypot(re,im)}
+function magBand(b,f){
+  const w=f/b.f, A=Math.pow(10,b.g/40), q=b.q;
+  // H(s) with s=jw : num/den
+  let nr,ni,dr,di;
+  if(b.y==='PK'){nr=1-w*w;ni=w*A/q;dr=1-w*w;di=w/(A*q)}
+  else if(b.y==='NT'){const d=Math.pow(10,b.g/20);nr=1-w*w;ni=w/q*Math.min(1,Math.max(0,d));dr=1-w*w;di=w/q;}
+  else if(b.y==='LS'){ // A * (s^2 + sqrt(A)/Q s + A)/(A s^2 + sqrt(A)/Q s + 1)
+    const sA=Math.sqrt(A);nr=A*(A-w*w);ni=A*sA/q*w;dr=1-A*w*w;di=sA/q*w}
+  else {const sA=Math.sqrt(A);nr=A*(1-A*w*w);ni=A*sA/q*w;dr=A-w*w;di=sA/q*w}
+  return 20*Math.log10(cabs(nr,ni)/cabs(dr,di));
+}
+function magHP(fc,f){const w=f/fc;return 20*Math.log10((w*w)/cabs(1-w*w,w*Math.SQRT2))*2} // 24 dB/oct
+function magLP(fc,f){const w=f/fc;return 20*Math.log10(1/cabs(1-w*w,w*Math.SQRT2))}      // 12 dB/oct
+function fit(c){const r=c.getBoundingClientRect(),dpr=(window.devicePixelRatio||1)*1.25;const W=Math.max(10,c.clientWidth),H=Math.max(10,c.clientHeight);
+  if(c.width!==Math.round(W*dpr)){c.width=Math.round(W*dpr);c.height=Math.round(H*dpr)}const g=c.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);return [g,W,H]}
+const eqc=document.getElementById('eqc');
+const fx=(f,W)=>Math.log(f/20)/Math.log(1000)*W, xf=(x,W)=>20*Math.pow(1000,x/W);
+const gy=(db,H)=>H/2-db/20*(H/2-10), yg=(y,H)=>(H/2-y)/(H/2-10)*20;
+const tcol={ST:'#c2458f',MID:'#8a4fb0',SIDE:'#3f9b9b'};
+function drawEQ(){
+  const [g,W,H]=fit(eqc);g.clearRect(0,0,W,H);
+  g.strokeStyle='#e8d3e3';g.lineWidth=1;g.font='700 9px Nunito';g.fillStyle='#b394b6';
+  [30,50,100,200,500,1000,2000,5000,10000].forEach(f=>{const x=fx(f,W);g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke();g.fillText(f>=1000?f/1000+'k':f,x+3,H-4)});
+  [-12,-6,0,6,12].forEach(d=>{const y=gy(d,H);g.strokeStyle=d?'#eddbe8':'#dcc0d6';g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke();if(d)g.fillText((d>0?'+':'')+d,4,y-3)});
+  const curve=(pick,col,fill)=>{g.beginPath();for(let x=0;x<=W;x+=2){const f=xf(x,W);let db=magHP(P.hp,f)+magLP(P.lp,f);
+      bands.forEach(b=>{if(pick(b))db+=magBand(b,f)});const y=gy(Math.max(-21,Math.min(21,db)),H);x?g.lineTo(x,y):g.moveTo(x,y)}
+    if(fill){g.lineTo(W,H);g.lineTo(0,H);g.closePath();const gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#e98cc955');gr.addColorStop(1,'#e98cc905');g.fillStyle=gr;g.fill()}
+    else{g.strokeStyle=col;g.lineWidth=fill===false?2.4:1.4;g.stroke()}};
+  curve(b=>b.t!=='SIDE',null,true);
+  g.setLineDash([4,3]);curve(b=>b.t!=='MID','#3f9b9b99',null);g.setLineDash([]);
+  g.shadowColor='#e47bc0';g.shadowBlur=8;curve(b=>b.t!=='SIDE','#c2458f',false);g.shadowBlur=0;
+  bands.forEach((b,i)=>{const x=fx(b.f,W),y=gy(b.y==='NT'?-15:b.g,H);g.beginPath();g.arc(x,y,i===sel?9:7.5,0,7);
+    g.fillStyle=i===sel?tcol[b.t]:'#fff';g.fill();g.lineWidth=2;g.strokeStyle=tcol[b.t];g.stroke();
+    g.fillStyle=i===sel?'#fff':tcol[b.t];g.font='900 10px Nunito';g.textAlign='center';g.fillText(i+1,x,y+3.5);g.textAlign='left'});
+  [['HP',P.hp],['LP',P.lp]].forEach(([t,f])=>{const x=fx(f,W);g.fillStyle='#8a4fb0';g.font='900 9px Nunito';g.fillText(t,x-6,14);g.fillRect(x-.5,18,1,8)});
+  g.fillStyle='#8e6a92';g.font='800 9px Nunito';g.textAlign='right';g.fillText('— MID / STEREO    - - SIDE',W-8,H-16);g.textAlign='left';
+}
+let drag=-1;
+eqc.addEventListener('pointerdown',e=>{const r=eqc.getBoundingClientRect(),sx=eqc.clientWidth/r.width;const x=(e.clientX-r.left)*sx,y=(e.clientY-r.top)*sx,W=eqc.clientWidth,H=eqc.clientHeight;
+  let best=-1,bd=400;bands.forEach((b,i)=>{const d=(fx(b.f,W)-x)**2+(gy(b.y==='NT'?-15:b.g,H)-y)**2;if(d<bd){bd=d;best=i}});
+  if(best>=0){sel=best;drag=best;eqc.setPointerCapture(e.pointerId);loadBand();drawEQ()}});
+eqc.addEventListener('pointermove',e=>{if(drag<0)return;const r=eqc.getBoundingClientRect(),sx=eqc.clientWidth/r.width;const W=eqc.clientWidth,H=eqc.clientHeight;
+  const b=bands[drag];b.f=Math.min(20000,Math.max(20,xf((e.clientX-r.left)*sx,W)));if(b.y!=='NT')b.g=Math.max(-18,Math.min(18,yg((e.clientY-r.top)*sx,H)));loadBand();drawEQ()});
+eqc.addEventListener('pointerup',()=>drag=-1);
+
+/* ---------- Mono-maker display ---------- */
+const monoc=document.getElementById('monoc');
+function drawMono(){const [g,W,H]=fit(monoc);g.clearRect(0,0,W,H);const x=fx(P.mF,W);
+  const gr=g.createLinearGradient(0,0,x,0);gr.addColorStop(0,'#c58ad655');gr.addColorStop(1,'#c58ad622');g.fillStyle=gr;g.fillRect(0,0,x,H);
+  g.strokeStyle='#8a4fb0';g.lineWidth=2;g.beginPath();g.moveTo(x,2);g.lineTo(x,H-2);g.stroke();
+  g.font='900 9px Nunito';g.fillStyle='#6b3074';g.fillText('MONO '+Math.round(100-P.mW)+'%',6,H/2+3);g.fillStyle='#b394b6';g.fillText('STEREO',x+6,H/2+3)}
+/* ---------- Pan display ---------- */
+const panc=document.getElementById('panc');
+function drawPan(){const [g,W,H]=fit(panc);g.clearRect(0,0,W,H);const cx=W/2,cy=H-6,R=Math.min(W/2-14,H-14);
+  g.strokeStyle='#e2c6dc';g.lineWidth=1.2;g.beginPath();g.arc(cx,cy,R,Math.PI,0);g.stroke();g.beginPath();g.arc(cx,cy,R*.5,Math.PI,0);g.stroke();
+  g.font='900 9px Nunito';g.fillStyle='#b394b6';g.fillText('L',cx-R-10,cy);g.fillText('R',cx+R+4,cy);
+  const p=P.pP/100,s=P.pW/100;const posL=Math.max(-1,Math.min(1,-s+p)),posR=Math.max(-1,Math.min(1,s+p));
+  const pt=v=>{const a=Math.PI*(1-(v+1)/2);return [cx+R*Math.cos(a),cy-R*Math.sin(a)]};
+  const [lx,ly]=pt(posL),[rx,ry]=pt(posR);
+  g.strokeStyle='#e58cc6';g.lineWidth=3;g.beginPath();const a0=Math.PI*(1-(posL+1)/2),a1=Math.PI*(1-(posR+1)/2);g.arc(cx,cy,R,Math.PI+ (Math.PI-a0),Math.PI+(Math.PI-a1));g.stroke();
+  [[lx,ly,'L','#8a4fb0'],[rx,ry,'R','#c2458f']].forEach(([x,y,t,c])=>{g.beginPath();g.arc(x,y,8,0,7);g.fillStyle=c;g.shadowColor=c;g.shadowBlur=8;g.fill();g.shadowBlur=0;
+    g.fillStyle='#fff';g.textAlign='center';g.fillText(t,x,y+3.2);g.textAlign='left'})}
+
+/* ---------- LED meters ---------- */
+function mkLed(id,n){const e=document.getElementById(id);e.innerHTML='<i></i>'.repeat(n);return [...e.children]}
+const ledCols=i=>i<0.55?'var(--led-g)':i<0.75?'var(--led-y)':i<0.88?'var(--led-o)':i<0.96?'var(--led-r)':'var(--led-p)';
+const M={inL:mkLed('inL',16),inR:mkLed('inR',16),outL:mkLed('outL',16),outR:mkLed('outR',16),limgr:mkLed('limgr',12),compgr:mkLed('compgr',14)};
+function setLed(cells,v,gr){cells.forEach((c,i)=>{const on=i/cells.length<v;c.style.background=on?(gr?'var(--pink2)':ledCols(i/cells.length)):'';
+  c.style.boxShadow=on?'0 0 5px '+(gr?'#e98cc9':'#fff8'):''})}
+
+/* ---------- Limiter scope ---------- */
+const limc=document.getElementById('limc');const N=420;const hist=[];let t=0,env=0,grS=0;
+function sig(){ // fake palm-muted chug + accents
+  t++;const beat=(t%26)<20;const acc=(t%104)<6;const a=(beat?0.55:0.12)+(acc?0.5:0)+Math.random()*.12;return a*(Math.random()*.25+.75)}
+let simWarm=false;
+function frame(){
+  const steps=simWarm?N:3;simWarm=false;
+  const ceil=Math.pow(10,P.lmCeil/20),gain=Math.pow(10,P.lmIn/20),clip=P.lmClip/100;
+  for(let i=0;i<steps;i++){let x=sig()*gain*.85;let c=x;
+    if(clip>0){const k=1+clip*3;c=Math.tanh(x*k)/Math.tanh(k)*Math.max(x,1e-9)/Math.max(x,1e-9);c=(1-clip)*x+clip*Math.tanh(x*k)/k*1.6}
+    const need=c>ceil?ceil/c:1;grS=need<grS?need:grS+(1-grS)*(0.02+0.06*(1-P.lmAdapt/100));const o=c*Math.min(grS,need);
+    hist.push([x,o,grS]);if(hist.length>N)hist.shift()}
+  const [g,W,H]=fit(limc);g.clearRect(0,0,W,H);const mid=H/2,sc=(H/2-14);
+  g.strokeStyle='#eddbe8';g.lineWidth=1;for(let i=1;i<10;i++){g.beginPath();g.moveTo(i*W/10,0);g.lineTo(i*W/10,H);g.stroke()}
+  for(let i=1;i<6;i++){g.beginPath();g.moveTo(0,i*H/6);g.lineTo(W,i*H/6);g.stroke()}
+  const yc=mid-ceil*sc;g.setLineDash([5,4]);g.strokeStyle='#c2458f88';g.beginPath();g.moveTo(0,yc);g.lineTo(W,yc);g.moveTo(0,H-yc);g.lineTo(W,H-yc);g.stroke();g.setLineDash([]);
+  const dx=W/N;
+  g.fillStyle='#b39ab855';g.beginPath();hist.forEach((h,i)=>{const y=mid-Math.min(1.2,h[0])*sc;i?g.lineTo(i*dx,y):g.moveTo(0,y)});for(let i=hist.length-1;i>=0;i--)g.lineTo(i*dx,mid+Math.min(1.2,hist[i][0])*sc);g.fill();
+  const og=g.createLinearGradient(0,0,0,H);og.addColorStop(0,'#e06fb6');og.addColorStop(.5,'#f7c4e4');og.addColorStop(1,'#e06fb6');
+  g.fillStyle=og;g.shadowColor='#e47bc0';g.shadowBlur=10;g.beginPath();hist.forEach((h,i)=>{const y=mid-h[1]*sc;i?g.lineTo(i*dx,y):g.moveTo(0,y)});for(let i=hist.length-1;i>=0;i--)g.lineTo(i*dx,mid+hist[i][1]*sc);g.fill();g.shadowBlur=0;
+  g.strokeStyle='#6b3074';g.lineWidth=2;g.beginPath();hist.forEach((h,i)=>{const db=-20*Math.log10(h[2]);const y=4+db/12*(H*.45);i?g.lineTo(i*dx,y):g.moveTo(0,y)});g.stroke();
+  const last=hist[hist.length-1]||[0,0,1];const grdb=-20*Math.log10(last[2]);
+  document.getElementById('limchip').textContent=`CEILING ${P.lmCeil.toFixed(1)} dBTP · GR −${grdb.toFixed(1)} dB`;
+  const lvl=v=>Math.max(0,1+20*Math.log10(Math.max(v,1e-4))/60);
+  setLed(M.inL,lvl(last[0]));setLed(M.inR,lvl(last[0]*.93));setLed(M.outL,lvl(last[1]));setLed(M.outR,lvl(last[1]*.97));
+  setLed(M.limgr,grdb/12,true);setLed(M.compgr,(Math.sin(t/30)*.5+.5)*.5,true);
+  // correlation
+  const cc=document.getElementById('corr').getContext('2d');cc.clearRect(0,0,36,110);const gr2=cc.createLinearGradient(0,0,0,110);
+  gr2.addColorStop(0,'#9ccf86');gr2.addColorStop(.5,'#f3d27a');gr2.addColorStop(1,'#ef7a8a');cc.fillStyle='#f3e3ef';cc.fillRect(0,0,36,110);
+  const cv=0.62-(P.wW-100)/400+Math.sin(t/40)*.05;const cy=(1-cv)/2*110;cc.fillStyle=gr2;cc.fillRect(6,cy-5,24,10);cc.fillStyle='#d6aed0';cc.fillRect(0,54,36,2);
+  requestAnimationFrame(frame)}
+function redrawAll(){drawEQ();drawMono();drawPan()}
+new ResizeObserver(redrawAll).observe(document.getElementById('plugin'));
+simWarm=true;loadBand();document.fonts.ready.then(redrawAll);redrawAll();frame();
+</script>
+</body>
+</html>

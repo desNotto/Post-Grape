@@ -1,0 +1,9 @@
+build/
+build-tests/
+external/
+bin/
+dist/
+.claude/
+*.user
+.vs/
+.vscode/
