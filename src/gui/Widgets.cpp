@@ -23,7 +23,6 @@ Knob::Knob (juce::AudioProcessorValueTreeState& state, const juce::String& param
     slider.setTextBoxStyle (juce::Slider::NoTextBox, false, 0, 0);
     slider.setRotaryParameters (kStart, kEnd, true);
     slider.setMouseDragSensitivity (220);
-    slider.setVelocityModeParameters (0.5, 1, 0.05, false, juce::ModifierKeys::shiftModifier);
     slider.onValueChange = [this] { repaint(); };
     addAndMakeVisible (slider);
     bind (paramId);

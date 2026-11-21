@@ -6,6 +6,17 @@
 
 namespace pg::ui
 {
+// Slider with fine adjustment: hold Shift when you click, then drag (5 times slower).
+class FineSlider : public juce::Slider
+{
+public:
+    void mouseDown (const juce::MouseEvent& e) override
+    {
+        setMouseDragSensitivity (e.mods.isShiftDown() ? 1100 : 220);
+        juce::Slider::mouseDown (e);
+    }
+};
+
 // Rotary knob with a label and a value text under it.
 class Knob : public juce::Component
 {
@@ -24,7 +35,7 @@ public:
     void paint (juce::Graphics&) override;
     void paintOverChildren (juce::Graphics&) override;
 
-    juce::Slider slider;
+    FineSlider slider;
 
 private:
     juce::AudioProcessorValueTreeState& apvts;
