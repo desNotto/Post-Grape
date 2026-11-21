@@ -480,7 +480,8 @@ void PostGrapeEditor::showUpdateResult()
             showMessage ("Update available",
                          "Post-Grape v" + latest + " is available. You have v" + cur + ".\n\n"
                          "Click Download. The plugin saves the zip file to the Downloads folder and opens the folder. "
-                         "Close the DAW, then replace Post-Grape.vst3 in C:\\Program Files\\Common Files\\VST3.",
+                         "Close the DAW, then extract the Post-Grape folder to C:\\Program Files\\Common Files\\VST3 "
+                         "and replace the old file.",
                          { { "Download", [this] { updateDialogPending = true; updates->startDownload(); } },
                            { "Release notes", openReleasePage },
                            { "Later", nullptr } },
@@ -492,7 +493,8 @@ void PostGrapeEditor::showUpdateResult()
         case S::Downloaded:
             showMessage ("Download complete",
                          "Saved: " + updates->downloadedFile().getFullPathName() + "\n\n"
-                         "Close the DAW. Extract Post-Grape.vst3 from the zip file and copy it to C:\\Program Files\\Common Files\\VST3.",
+                         "Close the DAW. Extract the Post-Grape folder from the zip file to C:\\Program Files\\Common Files\\VST3 "
+                         "and replace the old file.",
                          { { "Open folder", [this] { updates->downloadedFile().revealToUser(); } }, { "OK", nullptr } });
             break;
         case S::DownloadError:

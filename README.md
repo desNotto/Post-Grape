@@ -203,13 +203,15 @@ Factory presets: Init, Drop A Wall, Djent Tight, Doom Fog, Wide Rhythm, Left Lea
 - The plugin checks GitHub for a new version one time each day when you open the plugin window. You can turn this off in the update window.
 - The plugin sends only one request to `api.github.com`. It does not send any user data.
 - **Download** saves the zip file to the Downloads folder and opens the folder.
-- The DAW locks the plugin file while the DAW is open. Thus: close the DAW, extract `Post-Grape.vst3` and copy it to `C:\Program Files\Common Files\VST3\`.
+- The DAW locks the plugin file while the DAW is open. Thus: close the DAW, then extract the `Post-Grape` folder to `C:\Program Files\Common Files\VST3\` and replace the old file.
 
 ## 6. Install
 
 1. Download `Post-Grape-vX.Y.Z-win64.zip` from [Releases](https://github.com/desNotto/Post-Grape/releases).
-2. Extract `Post-Grape.vst3` to `C:\Program Files\Common Files\VST3\`.
+2. Extract the folder `Post-Grape` to `C:\Program Files\Common Files\VST3\`. The folder contains one file: `Post-Grape.vst3` (single-file VST3).
 3. Scan the plugins in the DAW.
+
+Versions 1.0.0 – 1.1.0 installed a folder with the name `Post-Grape.vst3`. Delete this old folder before you install a new version. If you do not delete it, the DAW can show the plugin two times.
 
 ## 7. Build
 
@@ -223,7 +225,8 @@ build.bat
 ```
 
 If `external/JUCE` is not present, CMake downloads JUCE automatically.
-The build copies the plugin to `bin\Post-Grape.vst3` and runs the DSP tests (`build\PostGrapeTests.exe`).
+The build copies the plugin (one file) to `bin\Post-Grape\Post-Grape.vst3` and runs the DSP tests (`build\PostGrapeTests.exe`).
+To make the release zip, run `powershell -ExecutionPolicy Bypass -File tools\package.ps1`.
 
 ---
 
@@ -418,13 +421,15 @@ Mono-Maker убирает сигнал Side ниже частоты кроссо
 - Плагин проверяет новую версию на GitHub один раз в день, когда вы открываете окно плагина. Это можно выключить в окне обновления.
 - Плагин отправляет только один запрос на `api.github.com`. Он не отправляет никаких данных о пользователе.
 - **Download** сохраняет zip-файл в папку «Загрузки» и открывает эту папку.
-- Пока DAW открыта, она блокирует файл плагина. Поэтому: закройте DAW, распакуйте `Post-Grape.vst3` и скопируйте его в `C:\Program Files\Common Files\VST3\`.
+- Пока DAW открыта, она блокирует файл плагина. Поэтому: закройте DAW, распакуйте папку `Post-Grape` в `C:\Program Files\Common Files\VST3\` и замените старый файл.
 
 ## 6. Установка
 
 1. Скачайте `Post-Grape-vX.Y.Z-win64.zip` со страницы [Releases](https://github.com/desNotto/Post-Grape/releases).
-2. Распакуйте `Post-Grape.vst3` в `C:\Program Files\Common Files\VST3\`.
+2. Распакуйте папку `Post-Grape` в `C:\Program Files\Common Files\VST3\`. В папке один файл: `Post-Grape.vst3` (VST3 одним файлом).
 3. Пересканируйте плагины в DAW.
+
+Версии 1.0.0 – 1.1.0 устанавливали папку с именем `Post-Grape.vst3`. Удалите эту старую папку перед установкой новой версии. Если её не удалить, DAW может показать плагин два раза.
 
 ## 7. Сборка
 
@@ -438,7 +443,8 @@ build.bat
 ```
 
 Если папки `external/JUCE` нет, CMake скачивает JUCE автоматически.
-Сборка копирует плагин в `bin\Post-Grape.vst3` и запускает DSP-тесты (`build\PostGrapeTests.exe`).
+Сборка копирует плагин (один файл) в `bin\Post-Grape\Post-Grape.vst3` и запускает DSP-тесты (`build\PostGrapeTests.exe`).
+Чтобы сделать zip для релиза, запустите `powershell -ExecutionPolicy Bypass -File tools\package.ps1`.
 
 ---
 

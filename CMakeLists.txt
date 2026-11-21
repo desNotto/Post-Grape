@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(PostGrape VERSION 1.1.0 LANGUAGES C CXX)
+project(PostGrape VERSION 1.1.1 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -81,13 +81,13 @@ target_link_libraries(PostGrape
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
 
-# Copy the built VST3 bundle to <project>/bin.
+# Copy the plugin to <project>/bin/Post-Grape/Post-Grape.vst3 as ONE file
+# (single-file VST3: the plugin binary without the bundle folders).
 add_custom_command(TARGET PostGrape_VST3 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape.vst3"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "$<TARGET_FILE_DIR:PostGrape_VST3>/../.."
-            "${CMAKE_SOURCE_DIR}/bin/Post-Grape.vst3"
-    COMMENT "Copy Post-Grape.vst3 to bin/")
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape"
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:PostGrape_VST3>" "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
+    COMMENT "Copy Post-Grape.vst3 (single file) to bin/Post-Grape/")
 
 # DSP tests (no JUCE).
 add_executable(PostGrapeTests tests/dsp_tests.cpp)
@@ -99,3 +99,11 @@ set_target_properties(PostGrapeUpdateTest PROPERTIES EXCLUDE_FROM_ALL TRUE)
 target_sources(PostGrapeUpdateTest PRIVATE tests/update_test.cpp src/UpdateChecker.cpp)
 target_compile_definitions(PostGrapeUpdateTest PRIVATE JucePlugin_VersionString="1.0.0" JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
 target_link_libraries(PostGrapeUpdateTest PRIVATE juce::juce_events PUBLIC juce::juce_recommended_config_flags)
+
+# Manual test host: loads bin/Post-Grape/Post-Grape.vst3 (single file) and processes audio.
+juce_add_console_app(PostGrapeHostTest PRODUCT_NAME "PostGrapeHostTest")
+set_target_properties(PostGrapeHostTest PROPERTIES EXCLUDE_FROM_ALL TRUE)
+target_sources(PostGrapeHostTest PRIVATE tests/host_test.cpp)
+target_compile_definitions(PostGrapeHostTest PRIVATE JUCE_PLUGINHOST_VST3=1 JUCE_MODAL_LOOPS_PERMITTED=1 JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0
+    POSTGRAPE_PLUGIN_PATH="${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3")
+target_link_libraries(PostGrapeHostTest PRIVATE juce::juce_audio_processors PUBLIC juce::juce_recommended_config_flags)
