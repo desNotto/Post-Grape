@@ -1,9 +1,10 @@
 # Post-Grape — macOS build (VST3 + AU, universal binary: Apple Silicon + Intel).
 # - Push to main: build and test only.
-# - Release published: build, test, attach Post-Grape-v<version>-macOS.zip to the release,
+# - Release published: build, test, attach Post-Grape-v<version>-x64-arm64-macOS.zip to the release,
 #   then test the update check against GitHub (the macOS plugin must find its own zip).
-# Note: upload the Windows zip first when you create a release. Old Windows plugins
-# (v1.0.0 .. v1.1.1) take the first zip of the release.
+# Asset names: GitHub lists release files in alphabetical order. Old Windows plugins
+# (v1.0.0 .. v1.1.1) take the FIRST zip. Thus the macOS zip name must sort after
+# "...-win64.zip": "Post-Grape-v<version>-x64-arm64-macOS.zip" ("x" > "w").
 name: macOS build
 
 on:
@@ -68,8 +69,8 @@ jobs:
         run: |
           VERSION=$(sed -n 's/^project(PostGrape VERSION \([0-9.]*\).*/\1/p' CMakeLists.txt)
           mkdir -p dist
-          cd bin && ditto -c -k --keepParent Post-Grape "../dist/Post-Grape-v${VERSION}-macOS.zip"
-          cd .. && unzip -l "dist/Post-Grape-v${VERSION}-macOS.zip" | head -20
+          cd bin && ditto -c -k --keepParent Post-Grape "../dist/Post-Grape-v${VERSION}-x64-arm64-macOS.zip"
+          cd .. && unzip -l "dist/Post-Grape-v${VERSION}-x64-arm64-macOS.zip" | head -20
 
       - uses: actions/upload-artifact@v4
         with:

@@ -204,7 +204,7 @@ Factory presets: Init, Drop A Wall, Djent Tight, Doom Fog, Wide Rhythm, Left Lea
 - The plugin sends only one request to `api.github.com`. It does not send any user data.
 - **Download** saves the zip file to the Downloads folder and opens the folder.
 - The DAW locks the plugin file while the DAW is open. Thus: close the DAW, then install the new files (see section 6) and replace the old files.
-- Each system downloads its own zip: Windows takes `…-win64.zip`, macOS takes `…-macOS.zip`.
+- Each system downloads its own zip: Windows takes `…-win64.zip`, macOS takes `…-x64-arm64-macOS.zip`.
 
 ## 6. Install
 
@@ -218,7 +218,7 @@ Versions 1.0.0 – 1.1.0 installed a folder with the name `Post-Grape.vst3`. Del
 
 ### macOS (10.13 or later, Apple Silicon and Intel)
 
-1. Download `Post-Grape-vX.Y.Z-macOS.zip` from [Releases](https://github.com/desNotto/Post-Grape/releases) and open it. The folder `Post-Grape` contains two plugins.
+1. Download `Post-Grape-vX.Y.Z-x64-arm64-macOS.zip` from [Releases](https://github.com/desNotto/Post-Grape/releases) and open it. The folder `Post-Grape` contains two plugins.
 2. Copy `Post-Grape.vst3` to `~/Library/Audio/Plug-Ins/VST3/` (for Ableton Live, Reaper, Cubase, Studio One, Bitwig).
 3. Copy `Post-Grape.component` to `~/Library/Audio/Plug-Ins/Components/` (Audio Unit: for Logic Pro, GarageBand).
 4. Scan the plugins in the DAW.
@@ -247,7 +247,7 @@ The build copies the plugin (one file) to `bin\Post-Grape\Post-Grape.vst3` and r
 To make the release zip, run `powershell -ExecutionPolicy Bypass -File tools\package.ps1`.
 
 **macOS:** Xcode command line tools, CMake 3.22+, Git. Run `./build.sh`. The result is `bin/Post-Grape/Post-Grape.vst3` and `bin/Post-Grape/Post-Grape.component` (universal binary).
-GitHub Actions (`.github/workflows/macos.yml`) builds and tests the macOS version for each push. When you publish a release, it attaches `Post-Grape-vX.Y.Z-macOS.zip` to the release automatically.
+GitHub Actions (`.github/workflows/macos.yml`) builds and tests the macOS version for each push. When you publish a release, it attaches `Post-Grape-vX.Y.Z-x64-arm64-macOS.zip` to the release automatically.
 
 ---
 
@@ -443,7 +443,7 @@ Mono-Maker убирает сигнал Side ниже частоты кроссо
 - Плагин отправляет только один запрос на `api.github.com`. Он не отправляет никаких данных о пользователе.
 - **Download** сохраняет zip-файл в папку «Загрузки» и открывает эту папку.
 - Пока DAW открыта, она блокирует файл плагина. Поэтому: закройте DAW, установите новые файлы (см. раздел 6) и замените старые.
-- Каждая система скачивает свой zip: Windows берёт `…-win64.zip`, macOS берёт `…-macOS.zip`.
+- Каждая система скачивает свой zip: Windows берёт `…-win64.zip`, macOS берёт `…-x64-arm64-macOS.zip`.
 
 ## 6. Установка
 
@@ -457,7 +457,7 @@ Mono-Maker убирает сигнал Side ниже частоты кроссо
 
 ### macOS (10.13 и новее, Apple Silicon и Intel)
 
-1. Скачайте `Post-Grape-vX.Y.Z-macOS.zip` со страницы [Releases](https://github.com/desNotto/Post-Grape/releases) и откройте его. В папке `Post-Grape` два плагина.
+1. Скачайте `Post-Grape-vX.Y.Z-x64-arm64-macOS.zip` со страницы [Releases](https://github.com/desNotto/Post-Grape/releases) и откройте его. В папке `Post-Grape` два плагина.
 2. Скопируйте `Post-Grape.vst3` в `~/Library/Audio/Plug-Ins/VST3/` (для Ableton Live, Reaper, Cubase, Studio One, Bitwig).
 3. Скопируйте `Post-Grape.component` в `~/Library/Audio/Plug-Ins/Components/` (Audio Unit: для Logic Pro, GarageBand).
 4. Пересканируйте плагины в DAW.
@@ -486,7 +486,7 @@ build.bat
 Чтобы сделать zip для релиза, запустите `powershell -ExecutionPolicy Bypass -File tools\package.ps1`.
 
 **macOS:** Xcode command line tools, CMake 3.22+, Git. Запустите `./build.sh`. Результат: `bin/Post-Grape/Post-Grape.vst3` и `bin/Post-Grape/Post-Grape.component` (универсальный бинарник).
-GitHub Actions (`.github/workflows/macos.yml`) собирает и тестирует macOS-версию при каждом push. Когда вы публикуете релиз, он автоматически прикрепляет к релизу `Post-Grape-vX.Y.Z-macOS.zip`.
+GitHub Actions (`.github/workflows/macos.yml`) собирает и тестирует macOS-версию при каждом push. Когда вы публикуете релиз, он автоматически прикрепляет к релизу `Post-Grape-vX.Y.Z-x64-arm64-macOS.zip`.
 
 ---
 
