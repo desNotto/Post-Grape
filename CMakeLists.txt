@@ -108,12 +108,15 @@ if(APPLE)
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape"
         COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:PostGrape_VST3>" "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
-        COMMENT "Copy Post-Grape.vst3 to bin/Post-Grape/")
+        # Sign again (ad hoc): JUCE adds moduleinfo.json after its own signature.
+        COMMAND codesign --force --sign - --timestamp=none "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.vst3"
+        COMMENT "Copy and sign Post-Grape.vst3 in bin/Post-Grape/")
     add_custom_command(TARGET PostGrape_AU POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape"
         COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.component"
         COMMAND ${CMAKE_COMMAND} -E copy_directory "$<TARGET_BUNDLE_DIR:PostGrape_AU>" "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.component"
-        COMMENT "Copy Post-Grape.component to bin/Post-Grape/")
+        COMMAND codesign --force --sign - --timestamp=none "${CMAKE_SOURCE_DIR}/bin/Post-Grape/Post-Grape.component"
+        COMMENT "Copy and sign Post-Grape.component in bin/Post-Grape/")
 else()
     add_custom_command(TARGET PostGrape_VST3 POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_SOURCE_DIR}/bin/Post-Grape.vst3"
